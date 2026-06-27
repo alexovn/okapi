@@ -1,5 +1,5 @@
 import type { ApiErrorResponse, ApiValidationErrors } from '../types/api'
-import { StatusCodeEnum } from '../types/statusCode'
+import { STATUS_CODE } from '../types/statusCode'
 
 export const API_ERROR_KIND = {
   NETWORK: 'network',
@@ -10,7 +10,6 @@ export const API_ERROR_KIND = {
   VALIDATION: 'validation',
   BUSINESS: 'business',
   SERVER: 'server',
-  APPLICATION: 'application',
   UNEXPECTED: 'unexpected',
 } as const
 
@@ -23,8 +22,60 @@ export const API_ERROR_TYPE = {
   VALIDATION: 'validation',
 } as const
 
+export type ApiErrorKind = typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND]
+
+export type ApiErrorType = typeof API_ERROR_TYPE[keyof typeof API_ERROR_TYPE]
+
+export interface MappedApiError {
+  type: ApiErrorType
+  message: string
+  details: ApiError
+  errors?: ApiValidationErrors
+}
+
+export interface ApiErrorResponseLike {
+  status: number
+  statusText?: string
+  body?: unknown
+}
+
+export interface FetchResponseLike {
+  status: number
+  statusText?: string
+}
+
+export interface AxiosErrorLike {
+  response?: {
+    status?: number
+    statusText?: string
+    data?: unknown
+  }
+  request?: unknown
+  code?: string
+  message?: string
+}
+
+export interface OfetchErrorLike {
+  response?: {
+    status?: number
+    statusText?: string
+    _data?: unknown
+  }
+  status?: number
+  statusCode?: number
+  statusText?: string
+  data?: unknown
+}
+
+export type ApiErrorAdapter = 'axios' | 'ofetch'
+
+export interface CreateApiErrorOptions {
+  adapter?: ApiErrorAdapter
+  body?: unknown
+}
+
 interface ApiErrorParams {
-  kind: typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND]
+  kind: ApiErrorKind
   message: string
   statusCode?: number
   validationErrors?: ApiValidationErrors
@@ -33,21 +84,20 @@ interface ApiErrorParams {
 }
 
 export class ApiError extends Error {
-  readonly kind: typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND]
+  readonly kind: ApiErrorKind
   readonly statusCode?: number
   readonly validationErrors?: ApiValidationErrors
   readonly raw?: unknown
   override readonly cause?: unknown
 
   constructor(params: ApiErrorParams) {
-    super(params.message)
+    super(params.message, { cause: params.cause })
 
     this.name = 'ApiError'
     this.kind = params.kind
     this.statusCode = params.statusCode
     this.validationErrors = params.validationErrors
     this.raw = params.raw
-    this.cause = params.cause
 
     Object.setPrototypeOf(this, new.target.prototype)
   }
@@ -70,7 +120,7 @@ export class ApiError extends Error {
     })
   }
 
-  static fromHttpResponse(statusCode: number, statusText: string, raw?: unknown) {
+  static fromHttpResponse(statusCode: number, statusText?: string, raw?: unknown) {
     return new ApiError({
       kind: getKindFromStatus(statusCode),
       message: getHttpMessage(statusCode, statusText),
@@ -116,8 +166,106 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   return true
 }
 
-export function mapApiError(error: unknown) {
-  const apiError = normalizeApiError(error)
+export function createApiError(
+  error: unknown,
+  options: CreateApiErrorOptions = {},
+): ApiError {
+  if (error instanceof ApiError) {
+    return error
+  }
+
+  if (isAbortError(error)) {
+    return ApiError.fromNetwork(error)
+  }
+
+  switch (options.adapter) {
+    case 'axios':
+      return fromAxiosError(error as AxiosErrorLike)
+
+    case 'ofetch':
+      return fromOfetchError(error as OfetchErrorLike)
+
+    default:
+      return fromNativeError(error, options.body)
+  }
+}
+
+export function createApiErrorFromResponse(response: ApiErrorResponseLike): ApiError {
+  if (isApiErrorResponse(response.body)) {
+    return ApiError.fromApiResponse(response.body, response.status)
+  }
+
+  return ApiError.fromHttpResponse(
+    response.status,
+    response.statusText,
+    response.body,
+  )
+}
+
+export function fromNativeError(error: unknown, body?: unknown): ApiError {
+  if (isObject(error) && typeof error.status === 'number') {
+    return fromFetchResponse(
+      {
+        status: error.status,
+        statusText: typeof error.statusText === 'string'
+          ? error.statusText
+          : undefined,
+      },
+      body ?? error.body,
+    )
+  }
+
+  if (isNativeFetchNetworkError(error)) {
+    return ApiError.fromNetwork(error)
+  }
+
+  return ApiError.fromUnexpected(error)
+}
+
+export function fromFetchResponse(
+  response: FetchResponseLike,
+  body?: unknown,
+): ApiError {
+  return createApiErrorFromResponse({
+    status: response.status,
+    statusText: response.statusText,
+    body,
+  })
+}
+
+export function fromAxiosError(error: AxiosErrorLike): ApiError {
+  if (typeof error.response?.status === 'number') {
+    return createApiErrorFromResponse({
+      status: error.response.status,
+      statusText: error.response.statusText,
+      body: error.response.data,
+    })
+  }
+
+  return ApiError.fromNetwork(error)
+}
+
+export function fromOfetchError(error: OfetchErrorLike): ApiError {
+  const status = typeof error.response?.status === 'number'
+    ? error.response.status
+    : getNumber(error.status) ?? getNumber(error.statusCode)
+
+  if (typeof status === 'number') {
+    return createApiErrorFromResponse({
+      status,
+      statusText: error.response?.statusText ?? error.statusText,
+      body: error.response?._data ?? error.data,
+    })
+  }
+
+  return ApiError.fromNetwork(error)
+}
+
+export function mapApiError(
+  error: unknown,
+  options?: CreateApiErrorOptions,
+): MappedApiError {
+  const apiError = normalizeApiError(error, options)
 
   switch (apiError.kind) {
     case API_ERROR_KIND.NETWORK:
@@ -186,31 +334,30 @@ export function mapApiError(error: unknown) {
   }
 }
 
-export function normalizeApiError(error: unknown): ApiError {
-  if (error instanceof ApiError) {
-    return error
-  }
-
-  return ApiError.fromUnexpected(error)
+export function normalizeApiError(
+  error: unknown,
+  options?: CreateApiErrorOptions,
+): ApiError {
+  return createApiError(error, options)
 }
 
 function getKindFromStatus(
   statusCode?: number,
   raw?: ApiErrorResponse,
-): typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND] {
-  if (statusCode === StatusCodeEnum.UNAUTHORIZED) {
+): ApiErrorKind {
+  if (statusCode === STATUS_CODE.UNAUTHORIZED) {
     return API_ERROR_KIND.UNAUTHORIZED
   }
-  if (statusCode === StatusCodeEnum.FORBIDDEN) {
+  if (statusCode === STATUS_CODE.FORBIDDEN) {
     return API_ERROR_KIND.FORBIDDEN
   }
-  if (statusCode === StatusCodeEnum.NOT_FOUND) {
+  if (statusCode === STATUS_CODE.NOT_FOUND) {
     return API_ERROR_KIND.NOT_FOUND
   }
-  if (statusCode === StatusCodeEnum.UNPROCESSABLE_CONTENT || raw?.errors) {
+  if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT || raw?.errors) {
     return API_ERROR_KIND.VALIDATION
   }
-  if (statusCode && statusCode >= StatusCodeEnum.INTERNAL_SERVER_ERROR) {
+  if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
     return API_ERROR_KIND.SERVER
   }
 
@@ -218,19 +365,19 @@ function getKindFromStatus(
 }
 
 function getHttpMessage(statusCode?: number, statusText?: string) {
-  if (statusCode === StatusCodeEnum.UNAUTHORIZED) {
+  if (statusCode === STATUS_CODE.UNAUTHORIZED) {
     return 'Unauthorized.'
   }
-  if (statusCode === StatusCodeEnum.FORBIDDEN) {
+  if (statusCode === STATUS_CODE.FORBIDDEN) {
     return 'Forbidden.'
   }
-  if (statusCode === StatusCodeEnum.NOT_FOUND) {
+  if (statusCode === STATUS_CODE.NOT_FOUND) {
     return 'Not found.'
   }
-  if (statusCode === StatusCodeEnum.UNPROCESSABLE_CONTENT) {
+  if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT) {
     return 'Validation error.'
   }
-  if (statusCode && statusCode >= StatusCodeEnum.INTERNAL_SERVER_ERROR) {
+  if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
     return 'Server error.'
   }
 
@@ -245,6 +392,14 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
+function isNativeFetchNetworkError(error: unknown) {
+  return error instanceof TypeError
+}
+
+function getNumber(value: unknown) {
+  return typeof value === 'number' ? value : undefined
+}
+
 function isValidationErrors(value: unknown): value is ApiValidationErrors {
   if (!isObject(value)) {
     return false
@@ -256,20 +411,4 @@ function isValidationErrors(value: unknown): value is ApiValidationErrors {
       && messages.every(message => typeof message === 'string')
     )
   })
-}
-
-export function createApiErrorFromResponse(response: {
-  status: number
-  statusText: string
-  _data?: unknown
-}) {
-  if (isApiErrorResponse(response._data)) {
-    return ApiError.fromApiResponse(response._data, response.status)
-  }
-
-  return ApiError.fromHttpResponse(
-    response.status,
-    response.statusText,
-    response._data,
-  )
 }
