@@ -1,3 +1,6 @@
+export * from './adapters/axios'
+export * from './adapters/native'
+export * from './adapters/ofetch'
 export * from './core/apiError'
 export * from './types/api'
 export * from './types/statusCode'

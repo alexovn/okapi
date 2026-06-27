@@ -39,41 +39,6 @@ export interface ApiErrorResponseLike {
   body?: unknown
 }
 
-export interface FetchResponseLike {
-  status: number
-  statusText?: string
-}
-
-export interface AxiosErrorLike {
-  response?: {
-    status?: number
-    statusText?: string
-    data?: unknown
-  }
-  request?: unknown
-  code?: string
-  message?: string
-}
-
-export interface OfetchErrorLike {
-  response?: {
-    status?: number
-    statusText?: string
-    _data?: unknown
-  }
-  status?: number
-  statusCode?: number
-  statusText?: string
-  data?: unknown
-}
-
-export type ApiErrorAdapter = 'axios' | 'ofetch'
-
-export interface CreateApiErrorOptions {
-  adapter?: ApiErrorAdapter
-  body?: unknown
-}
-
 interface ApiErrorParams {
   kind: ApiErrorKind
   message: string
@@ -166,30 +131,6 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   return true
 }
 
-export function createApiError(
-  error: unknown,
-  options: CreateApiErrorOptions = {},
-): ApiError {
-  if (error instanceof ApiError) {
-    return error
-  }
-
-  if (isAbortError(error)) {
-    return ApiError.fromNetwork(error)
-  }
-
-  switch (options.adapter) {
-    case 'axios':
-      return fromAxiosError(error as AxiosErrorLike)
-
-    case 'ofetch':
-      return fromOfetchError(error as OfetchErrorLike)
-
-    default:
-      return fromNativeError(error, options.body)
-  }
-}
-
 export function createApiErrorFromResponse(response: ApiErrorResponseLike): ApiError {
   if (isApiErrorResponse(response.body)) {
     return ApiError.fromApiResponse(response.body, response.status)
@@ -202,70 +143,8 @@ export function createApiErrorFromResponse(response: ApiErrorResponseLike): ApiE
   )
 }
 
-export function fromNativeError(error: unknown, body?: unknown): ApiError {
-  if (isObject(error) && typeof error.status === 'number') {
-    return fromFetchResponse(
-      {
-        status: error.status,
-        statusText: typeof error.statusText === 'string'
-          ? error.statusText
-          : undefined,
-      },
-      body ?? error.body,
-    )
-  }
-
-  if (isNativeFetchNetworkError(error)) {
-    return ApiError.fromNetwork(error)
-  }
-
-  return ApiError.fromUnexpected(error)
-}
-
-export function fromFetchResponse(
-  response: FetchResponseLike,
-  body?: unknown,
-): ApiError {
-  return createApiErrorFromResponse({
-    status: response.status,
-    statusText: response.statusText,
-    body,
-  })
-}
-
-export function fromAxiosError(error: AxiosErrorLike): ApiError {
-  if (typeof error.response?.status === 'number') {
-    return createApiErrorFromResponse({
-      status: error.response.status,
-      statusText: error.response.statusText,
-      body: error.response.data,
-    })
-  }
-
-  return ApiError.fromNetwork(error)
-}
-
-export function fromOfetchError(error: OfetchErrorLike): ApiError {
-  const status = typeof error.response?.status === 'number'
-    ? error.response.status
-    : getNumber(error.status) ?? getNumber(error.statusCode)
-
-  if (typeof status === 'number') {
-    return createApiErrorFromResponse({
-      status,
-      statusText: error.response?.statusText ?? error.statusText,
-      body: error.response?._data ?? error.data,
-    })
-  }
-
-  return ApiError.fromNetwork(error)
-}
-
-export function mapApiError(
-  error: unknown,
-  options?: CreateApiErrorOptions,
-): MappedApiError {
-  const apiError = normalizeApiError(error, options)
+export function mapApiError(error: unknown): MappedApiError {
+  const apiError = normalizeApiError(error)
 
   switch (apiError.kind) {
     case API_ERROR_KIND.NETWORK:
@@ -334,11 +213,16 @@ export function mapApiError(
   }
 }
 
-export function normalizeApiError(
-  error: unknown,
-  options?: CreateApiErrorOptions,
-): ApiError {
-  return createApiError(error, options)
+export function normalizeApiError(error: unknown): ApiError {
+  if (error instanceof ApiError) {
+    return error
+  }
+
+  if (isAbortError(error)) {
+    return ApiError.fromNetwork(error)
+  }
+
+  return ApiError.fromUnexpected(error)
 }
 
 function getKindFromStatus(
@@ -390,14 +274,6 @@ function isAbortError(error: unknown) {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
-}
-
-function isNativeFetchNetworkError(error: unknown) {
-  return error instanceof TypeError
-}
-
-function getNumber(value: unknown) {
-  return typeof value === 'number' ? value : undefined
 }
 
 function isValidationErrors(value: unknown): value is ApiValidationErrors {
