@@ -8,6 +8,8 @@ export const API_ERROR_KIND = {
   FORBIDDEN: 'forbidden',
   NOT_FOUND: 'not-found',
   VALIDATION: 'validation',
+  CONFLICT: 'conflict',
+  RATE_LIMITED: 'rate-limited',
   BUSINESS: 'business',
   SERVER: 'server',
   UNEXPECTED: 'unexpected',
@@ -190,6 +192,20 @@ export function mapApiError(error: unknown): MappedApiError {
         details: apiError,
       }
 
+    case API_ERROR_KIND.CONFLICT:
+      return {
+        type: API_ERROR_TYPE.BUSINESS,
+        message: apiError.message || 'Request conflicts with the current resource state.',
+        details: apiError,
+      }
+
+    case API_ERROR_KIND.RATE_LIMITED:
+      return {
+        type: API_ERROR_TYPE.BUSINESS,
+        message: apiError.message || 'Too many requests. Please try again later.',
+        details: apiError,
+      }
+
     case API_ERROR_KIND.SERVER:
       return {
         type: API_ERROR_TYPE.SERVER,
@@ -238,8 +254,14 @@ function getKindFromStatus(
   if (statusCode === STATUS_CODE.NOT_FOUND) {
     return API_ERROR_KIND.NOT_FOUND
   }
+  if (statusCode === STATUS_CODE.CONFLICT) {
+    return API_ERROR_KIND.CONFLICT
+  }
   if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT || raw?.errors) {
     return API_ERROR_KIND.VALIDATION
+  }
+  if (statusCode === STATUS_CODE.TOO_MANY_REQUESTS) {
+    return API_ERROR_KIND.RATE_LIMITED
   }
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
     return API_ERROR_KIND.SERVER
@@ -258,8 +280,14 @@ function getHttpMessage(statusCode?: number, statusText?: string) {
   if (statusCode === STATUS_CODE.NOT_FOUND) {
     return 'Not found.'
   }
+  if (statusCode === STATUS_CODE.CONFLICT) {
+    return 'Conflict.'
+  }
   if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT) {
     return 'Validation error.'
+  }
+  if (statusCode === STATUS_CODE.TOO_MANY_REQUESTS) {
+    return 'Too many requests.'
   }
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
     return 'Server error.'
