@@ -1,4 +1,5 @@
 import type { ApiErrorResponse, ApiValidationErrors } from '../types/api'
+import { EN_API_ERROR_MESSAGES, EN_HTTP_ERROR_MESSAGES } from '../i18n/locales/en'
 import { STATUS_CODE } from '../types/statusCode'
 
 export const API_ERROR_KIND = {
@@ -33,6 +34,32 @@ export interface MappedApiError {
   message: string
   details: ApiError
   errors?: ApiValidationErrors
+}
+
+export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
+
+export type ApiErrorMessageResolver = (error: ApiError) => string | undefined
+
+export interface MapApiErrorOptions {
+  messages?: ApiErrorMessages
+  resolveMessage?: ApiErrorMessageResolver
+}
+
+export type HttpErrorMessages = Partial<Record<number, string>>
+
+export interface HttpErrorMessageContext {
+  statusCode?: number
+  statusText?: string
+  raw?: unknown
+}
+
+export type HttpErrorMessageResolver = (
+  context: HttpErrorMessageContext,
+) => string | undefined
+
+export interface HttpErrorMessageOptions {
+  httpMessages?: HttpErrorMessages
+  resolveHttpMessage?: HttpErrorMessageResolver
 }
 
 export interface ApiErrorResponseLike {
@@ -87,10 +114,15 @@ export class ApiError extends Error {
     })
   }
 
-  static fromHttpResponse(statusCode: number, statusText?: string, raw?: unknown) {
+  static fromHttpResponse(
+    statusCode: number,
+    statusText?: string,
+    raw?: unknown,
+    options: HttpErrorMessageOptions = {},
+  ) {
     return new ApiError({
       kind: getKindFromStatus(statusCode),
-      message: getHttpMessage(statusCode, statusText),
+      message: getHttpMessage(statusCode, statusText, raw, options),
       statusCode,
       raw,
     })
@@ -133,7 +165,10 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   return true
 }
 
-export function createApiErrorFromResponse(response: ApiErrorResponseLike): ApiError {
+export function createApiErrorFromResponse(
+  response: ApiErrorResponseLike,
+  options: HttpErrorMessageOptions = {},
+): ApiError {
   if (isApiErrorResponse(response.body)) {
     return ApiError.fromApiResponse(response.body, response.status)
   }
@@ -142,91 +177,26 @@ export function createApiErrorFromResponse(response: ApiErrorResponseLike): ApiE
     response.status,
     response.statusText,
     response.body,
+    options,
   )
 }
 
-export function mapApiError(error: unknown): MappedApiError {
+export function mapApiError(
+  error: unknown,
+  options: MapApiErrorOptions = {},
+): MappedApiError {
   const apiError = normalizeApiError(error)
-
-  switch (apiError.kind) {
-    case API_ERROR_KIND.NETWORK:
-      return {
-        type: API_ERROR_TYPE.NETWORK,
-        message: 'Network unavailable. Please try again later.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.ABORT:
-      return {
-        type: API_ERROR_TYPE.NETWORK,
-        message: 'Request has been cancelled.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.VALIDATION:
-      return {
-        type: API_ERROR_TYPE.VALIDATION,
-        message: apiError.message || 'Data validation error.',
-        errors: apiError.validationErrors,
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.UNAUTHORIZED:
-      return {
-        type: API_ERROR_TYPE.AUTH,
-        message: apiError.message || 'Unauthorized. Please sign in again.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.FORBIDDEN:
-      return {
-        type: API_ERROR_TYPE.BUSINESS,
-        message: apiError.message || 'You do not have permission to perform this action.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.NOT_FOUND:
-      return {
-        type: API_ERROR_TYPE.BUSINESS,
-        message: apiError.message || 'Requested resource was not found.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.CONFLICT:
-      return {
-        type: API_ERROR_TYPE.BUSINESS,
-        message: apiError.message || 'Request conflicts with the current resource state.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.RATE_LIMITED:
-      return {
-        type: API_ERROR_TYPE.BUSINESS,
-        message: apiError.message || 'Too many requests. Please try again later.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.SERVER:
-      return {
-        type: API_ERROR_TYPE.SERVER,
-        message: apiError.message || 'Server error. Please try again later.',
-        details: apiError,
-      }
-
-    case API_ERROR_KIND.BUSINESS:
-      return {
-        type: API_ERROR_TYPE.BUSINESS,
-        message: apiError.message || 'Business logic error.',
-        details: apiError,
-      }
-
-    default:
-      return {
-        type: API_ERROR_TYPE.UNEXPECTED,
-        message: apiError.message || 'Unexpected error occurred.',
-        details: apiError,
-      }
+  const mappedError: MappedApiError = {
+    type: getApiErrorType(apiError),
+    message: getMappedApiErrorMessage(apiError, options),
+    details: apiError,
   }
+
+  if (apiError.kind === API_ERROR_KIND.VALIDATION) {
+    mappedError.errors = apiError.validationErrors
+  }
+
+  return mappedError
 }
 
 export function normalizeApiError(error: unknown): ApiError {
@@ -239,6 +209,58 @@ export function normalizeApiError(error: unknown): ApiError {
   }
 
   return ApiError.fromUnexpected(error)
+}
+
+function getApiErrorType(error: ApiError): ApiErrorType {
+  switch (error.kind) {
+    case API_ERROR_KIND.NETWORK:
+    case API_ERROR_KIND.ABORT:
+      return API_ERROR_TYPE.NETWORK
+
+    case API_ERROR_KIND.VALIDATION:
+      return API_ERROR_TYPE.VALIDATION
+
+    case API_ERROR_KIND.UNAUTHORIZED:
+      return API_ERROR_TYPE.AUTH
+
+    case API_ERROR_KIND.SERVER:
+      return API_ERROR_TYPE.SERVER
+
+    case API_ERROR_KIND.FORBIDDEN:
+    case API_ERROR_KIND.NOT_FOUND:
+    case API_ERROR_KIND.CONFLICT:
+    case API_ERROR_KIND.RATE_LIMITED:
+    case API_ERROR_KIND.BUSINESS:
+      return API_ERROR_TYPE.BUSINESS
+
+    default:
+      return API_ERROR_TYPE.UNEXPECTED
+  }
+}
+
+function getMappedApiErrorMessage(
+  error: ApiError,
+  options: MapApiErrorOptions,
+) {
+  const resolvedMessage = options.resolveMessage?.(error)
+
+  if (resolvedMessage) {
+    return resolvedMessage
+  }
+
+  const customMessage = options.messages?.[error.kind]
+
+  if (customMessage) {
+    return customMessage
+  }
+
+  const defaultMessage = EN_API_ERROR_MESSAGES[error.kind]
+
+  if (defaultMessage) {
+    return defaultMessage
+  }
+
+  return error.message
 }
 
 function getKindFromStatus(
@@ -270,30 +292,47 @@ function getKindFromStatus(
   return API_ERROR_KIND.BUSINESS
 }
 
-function getHttpMessage(statusCode?: number, statusText?: string) {
-  if (statusCode === STATUS_CODE.UNAUTHORIZED) {
-    return 'Unauthorized.'
-  }
-  if (statusCode === STATUS_CODE.FORBIDDEN) {
-    return 'Forbidden.'
-  }
-  if (statusCode === STATUS_CODE.NOT_FOUND) {
-    return 'Not found.'
-  }
-  if (statusCode === STATUS_CODE.CONFLICT) {
-    return 'Conflict.'
-  }
-  if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT) {
-    return 'Validation error.'
-  }
-  if (statusCode === STATUS_CODE.TOO_MANY_REQUESTS) {
-    return 'Too many requests.'
-  }
-  if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
-    return 'Server error.'
+function getHttpMessage(
+  statusCode?: number,
+  statusText?: string,
+  raw?: unknown,
+  options: HttpErrorMessageOptions = {},
+): string {
+  const resolvedMessage = options.resolveHttpMessage?.({
+    statusCode,
+    statusText,
+    raw,
+  })
+
+  if (resolvedMessage) {
+    return resolvedMessage
   }
 
-  return statusText || `HTTP error ${statusCode ?? 'unknown'}.`
+  const customMessage = statusCode !== undefined
+    ? options.httpMessages?.[statusCode]
+    : undefined
+
+  if (customMessage) {
+    return customMessage
+  }
+
+  const defaultMessage = statusCode !== undefined
+    ? EN_HTTP_ERROR_MESSAGES[statusCode]
+    : undefined
+
+  if (defaultMessage) {
+    return defaultMessage
+  }
+
+  if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
+    return EN_HTTP_ERROR_MESSAGES[STATUS_CODE.INTERNAL_SERVER_ERROR] ?? 'Server error.'
+  }
+
+  if (statusText) {
+    return statusText
+  }
+
+  return `HTTP error ${statusCode ?? 'unknown'}.`
 }
 
 function isAbortError(error: unknown) {

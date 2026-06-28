@@ -1,10 +1,12 @@
 import type { FetchError } from 'ofetch'
 import { ApiError, createApiErrorFromResponse } from '../core/apiError'
+import type { HttpErrorMessageOptions } from '../core/apiError'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 
 export function fromOfetchError<T = unknown>(
   error: FetchError<T>,
+  options?: HttpErrorMessageOptions,
 ): ApiError {
   const status = typeof error.response?.status === 'number'
     ? error.response.status
@@ -15,7 +17,7 @@ export function fromOfetchError<T = unknown>(
       status,
       statusText: error.response?.statusText ?? error.statusText,
       body: error.response?._data ?? error.data,
-    })
+    }, options)
   }
 
   return ApiError.fromNetwork(error)

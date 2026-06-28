@@ -1,4 +1,5 @@
 import { ApiError, createApiErrorFromResponse } from '../core/apiError'
+import type { HttpErrorMessageOptions } from '../core/apiError'
 
 export interface FetchResponseLike {
   status: number
@@ -8,15 +9,20 @@ export interface FetchResponseLike {
 export function fromFetchResponse(
   response: FetchResponseLike,
   body?: unknown,
+  options?: HttpErrorMessageOptions,
 ): ApiError {
   return createApiErrorFromResponse({
     status: response.status,
     statusText: response.statusText,
     body,
-  })
+  }, options)
 }
 
-export function fromNativeError(error: unknown, body?: unknown): ApiError {
+export function fromNativeError(
+  error: unknown,
+  body?: unknown,
+  options?: HttpErrorMessageOptions,
+): ApiError {
   if (isObject(error) && typeof error.status === 'number') {
     return fromFetchResponse(
       {
@@ -26,6 +32,7 @@ export function fromNativeError(error: unknown, body?: unknown): ApiError {
           : undefined,
       },
       body ?? error.body,
+      options,
     )
   }
 
