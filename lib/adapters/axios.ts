@@ -1,12 +1,12 @@
 import type { AxiosError } from 'axios'
 import { ApiError, createApiErrorFromResponse } from '../core/apiError'
-import type { HttpErrorMessageOptions } from '../core/apiError'
+import type { ApiErrorAdapterOptions } from '../core/apiError'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 
 export function fromAxiosError<T = unknown, D = unknown>(
   error: AxiosError<T, D>,
-  options?: HttpErrorMessageOptions,
+  options?: ApiErrorAdapterOptions,
 ): ApiError {
   if (typeof error.response?.status === 'number') {
     return createApiErrorFromResponse({
@@ -16,5 +16,5 @@ export function fromAxiosError<T = unknown, D = unknown>(
     }, options)
   }
 
-  return ApiError.fromNetwork(error)
+  return ApiError.fromNetwork(error, options)
 }

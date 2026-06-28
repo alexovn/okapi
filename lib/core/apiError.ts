@@ -40,9 +40,23 @@ export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
 
 export type ApiErrorMessageResolver = (error: ApiError) => string | undefined
 
-export interface MapApiErrorOptions {
+export interface MapApiErrorOptions extends ApiErrorFactoryMessageOptions {
   messages?: ApiErrorMessages
   resolveMessage?: ApiErrorMessageResolver
+}
+
+export interface ApiErrorFactoryMessageContext {
+  kind: ApiErrorKind
+  cause?: unknown
+}
+
+export type ApiErrorFactoryMessageResolver = (
+  context: ApiErrorFactoryMessageContext,
+) => string | undefined
+
+export interface ApiErrorFactoryMessageOptions {
+  messages?: ApiErrorMessages
+  resolveFactoryMessage?: ApiErrorFactoryMessageResolver
 }
 
 export type HttpErrorMessages = Partial<Record<number, string>>
@@ -61,6 +75,10 @@ export interface HttpErrorMessageOptions {
   httpMessages?: HttpErrorMessages
   resolveHttpMessage?: HttpErrorMessageResolver
 }
+
+export interface ApiErrorAdapterOptions
+  extends HttpErrorMessageOptions,
+  ApiErrorFactoryMessageOptions {}
 
 export interface ApiErrorResponseLike {
   status: number
@@ -122,28 +140,38 @@ export class ApiError extends Error {
   ) {
     return new ApiError({
       kind: getKindFromStatus(statusCode),
-      message: getHttpMessage(statusCode, statusText, raw, options),
+      message: getMappedHttpMessage(statusCode, statusText, raw, options),
       statusCode,
       raw,
     })
   }
 
-  static fromNetwork(error: unknown) {
+  static fromNetwork(
+    error: unknown,
+    options: ApiErrorFactoryMessageOptions = {},
+  ) {
+    const kind = isAbortError(error)
+      ? API_ERROR_KIND.ABORT
+      : API_ERROR_KIND.NETWORK
+
     return new ApiError({
-      kind: isAbortError(error)
-        ? API_ERROR_KIND.ABORT
-        : API_ERROR_KIND.NETWORK,
-      message: isAbortError(error)
-        ? 'AbortController error. Request cancelled.'
-        : 'Network error.',
+      kind,
+      message: getMappedApiErrorFactoryMessage(kind, error, options),
       cause: error,
     })
   }
 
-  static fromUnexpected(error: unknown) {
+  static fromUnexpected(
+    error: unknown,
+    options: ApiErrorFactoryMessageOptions = {},
+  ) {
     return new ApiError({
       kind: API_ERROR_KIND.UNEXPECTED,
-      message: 'Unexpected application error.',
+      message: getMappedApiErrorFactoryMessage(
+        API_ERROR_KIND.UNEXPECTED,
+        error,
+        options,
+      ),
       cause: error,
     })
   }
@@ -185,7 +213,7 @@ export function mapApiError(
   error: unknown,
   options: MapApiErrorOptions = {},
 ): MappedApiError {
-  const apiError = normalizeApiError(error)
+  const apiError = normalizeApiError(error, options)
   const mappedError: MappedApiError = {
     type: getApiErrorType(apiError),
     message: getMappedApiErrorMessage(apiError, options),
@@ -199,16 +227,19 @@ export function mapApiError(
   return mappedError
 }
 
-export function normalizeApiError(error: unknown): ApiError {
+export function normalizeApiError(
+  error: unknown,
+  options: ApiErrorFactoryMessageOptions = {},
+): ApiError {
   if (error instanceof ApiError) {
     return error
   }
 
   if (isAbortError(error)) {
-    return ApiError.fromNetwork(error)
+    return ApiError.fromNetwork(error, options)
   }
 
-  return ApiError.fromUnexpected(error)
+  return ApiError.fromUnexpected(error, options)
 }
 
 function getApiErrorType(error: ApiError): ApiErrorType {
@@ -236,31 +267,6 @@ function getApiErrorType(error: ApiError): ApiErrorType {
     default:
       return API_ERROR_TYPE.UNEXPECTED
   }
-}
-
-function getMappedApiErrorMessage(
-  error: ApiError,
-  options: MapApiErrorOptions,
-) {
-  const resolvedMessage = options.resolveMessage?.(error)
-
-  if (resolvedMessage) {
-    return resolvedMessage
-  }
-
-  const customMessage = options.messages?.[error.kind]
-
-  if (customMessage) {
-    return customMessage
-  }
-
-  const defaultMessage = EN_API_ERROR_MESSAGES[error.kind]
-
-  if (defaultMessage) {
-    return defaultMessage
-  }
-
-  return error.message
 }
 
 function getKindFromStatus(
@@ -292,7 +298,63 @@ function getKindFromStatus(
   return API_ERROR_KIND.BUSINESS
 }
 
-function getHttpMessage(
+function getMappedApiErrorMessage(
+  error: ApiError,
+  options: MapApiErrorOptions,
+) {
+  const resolvedMessage = options.resolveMessage?.(error)
+
+  if (resolvedMessage) {
+    return resolvedMessage
+  }
+
+  const customMessage = options.messages?.[error.kind]
+
+  if (customMessage) {
+    return customMessage
+  }
+
+  const defaultMessage = EN_API_ERROR_MESSAGES[error.kind]
+
+  if (defaultMessage) {
+    return defaultMessage
+  }
+
+  return error.message
+}
+
+function getMappedApiErrorFactoryMessage(
+  kind: ApiErrorKind,
+  cause: unknown,
+  options: ApiErrorFactoryMessageOptions,
+): string {
+  const resolvedMessage = options.resolveFactoryMessage?.({
+    kind,
+    cause,
+  })
+
+  if (resolvedMessage) {
+    return resolvedMessage
+  }
+
+  const customMessage = options.messages?.[kind]
+
+  if (customMessage) {
+    return customMessage
+  }
+
+  const defaultMessage = EN_API_ERROR_MESSAGES[kind]
+
+  if (defaultMessage) {
+    return defaultMessage
+  }
+
+  return kind === API_ERROR_KIND.UNEXPECTED
+    ? 'Unexpected application error.'
+    : 'Network error.'
+}
+
+function getMappedHttpMessage(
   statusCode?: number,
   statusText?: string,
   raw?: unknown,

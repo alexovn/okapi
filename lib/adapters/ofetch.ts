@@ -1,12 +1,12 @@
 import type { FetchError } from 'ofetch'
 import { ApiError, createApiErrorFromResponse } from '../core/apiError'
-import type { HttpErrorMessageOptions } from '../core/apiError'
+import type { ApiErrorAdapterOptions } from '../core/apiError'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 
 export function fromOfetchError<T = unknown>(
   error: FetchError<T>,
-  options?: HttpErrorMessageOptions,
+  options?: ApiErrorAdapterOptions,
 ): ApiError {
   const status = typeof error.response?.status === 'number'
     ? error.response.status
@@ -20,7 +20,7 @@ export function fromOfetchError<T = unknown>(
     }, options)
   }
 
-  return ApiError.fromNetwork(error)
+  return ApiError.fromNetwork(error, options)
 }
 
 function getNumber(value: unknown) {

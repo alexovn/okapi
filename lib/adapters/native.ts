@@ -1,5 +1,5 @@
 import { ApiError, createApiErrorFromResponse } from '../core/apiError'
-import type { HttpErrorMessageOptions } from '../core/apiError'
+import type { ApiErrorAdapterOptions } from '../core/apiError'
 
 export interface FetchResponseLike {
   status: number
@@ -9,7 +9,7 @@ export interface FetchResponseLike {
 export function fromFetchResponse(
   response: FetchResponseLike,
   body?: unknown,
-  options?: HttpErrorMessageOptions,
+  options?: ApiErrorAdapterOptions,
 ): ApiError {
   return createApiErrorFromResponse({
     status: response.status,
@@ -21,7 +21,7 @@ export function fromFetchResponse(
 export function fromNativeError(
   error: unknown,
   body?: unknown,
-  options?: HttpErrorMessageOptions,
+  options?: ApiErrorAdapterOptions,
 ): ApiError {
   if (isObject(error) && typeof error.status === 'number') {
     return fromFetchResponse(
@@ -37,10 +37,10 @@ export function fromNativeError(
   }
 
   if (error instanceof TypeError) {
-    return ApiError.fromNetwork(error)
+    return ApiError.fromNetwork(error, options)
   }
 
-  return ApiError.fromUnexpected(error)
+  return ApiError.fromUnexpected(error, options)
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
