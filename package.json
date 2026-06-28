@@ -8,7 +8,21 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "peerDependencies": {
+    "axios": "^1.18.1",
+    "ofetch": "^1.5.1"
+  },
+  "peerDependenciesMeta": {
+    "axios": {
+      "optional": true
+    },
+    "ofetch": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "axios": "^1.18.1",
+    "ofetch": "^1.5.1",
     "typescript": "~6.0.2",
     "vite": "^8.0.12"
   }

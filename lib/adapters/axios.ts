@@ -1,17 +1,11 @@
+import type { AxiosError } from 'axios'
 import { ApiError, createApiErrorFromResponse } from '../core/apiError'
 
-export interface AxiosErrorLike {
-  response?: {
-    status?: number
-    statusText?: string
-    data?: unknown
-  }
-  request?: unknown
-  code?: string
-  message?: string
-}
+export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 
-export function fromAxiosError(error: AxiosErrorLike): ApiError {
+export function fromAxiosError<T = unknown, D = unknown>(
+  error: AxiosError<T, D>,
+): ApiError {
   if (typeof error.response?.status === 'number') {
     return createApiErrorFromResponse({
       status: error.response.status,

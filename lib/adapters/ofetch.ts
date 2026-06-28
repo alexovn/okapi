@@ -1,18 +1,11 @@
+import type { FetchError } from 'ofetch'
 import { ApiError, createApiErrorFromResponse } from '../core/apiError'
 
-export interface OfetchErrorLike {
-  response?: {
-    status?: number
-    statusText?: string
-    _data?: unknown
-  }
-  status?: number
-  statusCode?: number
-  statusText?: string
-  data?: unknown
-}
+export type ApiOfetchError<T = unknown> = FetchError<T>
 
-export function fromOfetchError(error: OfetchErrorLike): ApiError {
+export function fromOfetchError<T = unknown>(
+  error: FetchError<T>,
+): ApiError {
   const status = typeof error.response?.status === 'number'
     ? error.response.status
     : getNumber(error.status) ?? getNumber(error.statusCode)
