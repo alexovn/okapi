@@ -6,7 +6,7 @@ import type {
   ApiError,
 } from '../../lib'
 
-interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions { }
+interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions {}
 
 export interface ApiErrorHandler {
   getOfetchError: (error: unknown) => ApiError

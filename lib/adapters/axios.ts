@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios'
 import type { AxiosError } from 'axios'
 import { ApiError, createApiErrorFromResponse, normalizeApiError } from '../core/apiError'
-import type { ApiErrorAdapterOptions } from '../core/apiError'
+import type { ApiErrorAdapterOptions } from '../types/api'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 

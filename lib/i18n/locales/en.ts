@@ -1,6 +1,6 @@
-import type { ApiErrorKind, HttpErrorMessages } from '../../core/apiError'
+import type { ApiErrorKind, HttpErrorMessages } from '../../types/api'
 
-export const EN_API_ERROR_MESSAGES = {
+export const EN_API_ERROR_MESSAGE = {
   network: 'Network unavailable. Please try again later.',
   abort: 'Request has been cancelled.',
   unauthorized: 'Unauthorized. Please sign in again.',
@@ -14,7 +14,7 @@ export const EN_API_ERROR_MESSAGES = {
   unexpected: 'Unexpected error occurred.',
 } satisfies Record<ApiErrorKind, string>
 
-export const EN_HTTP_ERROR_MESSAGES: HttpErrorMessages = {
+export const EN_HTTP_ERROR_MESSAGE: HttpErrorMessages = {
   400: 'Bad request.',
   401: 'Unauthorized.',
   403: 'Forbidden.',

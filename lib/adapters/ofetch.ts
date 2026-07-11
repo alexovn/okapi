@@ -1,6 +1,6 @@
 import { FetchError } from 'ofetch'
 import { ApiError, createApiErrorFromResponse, normalizeApiError } from '../core/apiError'
-import type { ApiErrorAdapterOptions } from '../core/apiError'
+import type { ApiErrorAdapterOptions } from '../types/api'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 

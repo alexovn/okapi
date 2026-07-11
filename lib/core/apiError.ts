@@ -1,99 +1,17 @@
 import type { ApiErrorResponse, ApiValidationErrors } from '../types/api'
-import { EN_API_ERROR_MESSAGES, EN_HTTP_ERROR_MESSAGES } from '../i18n/locales/en'
-import { STATUS_CODE } from '../types/statusCode'
-
-export const API_ERROR_KIND = {
-  NETWORK: 'network',
-  ABORT: 'abort',
-  UNAUTHORIZED: 'unauthorized',
-  FORBIDDEN: 'forbidden',
-  NOT_FOUND: 'not-found',
-  VALIDATION: 'validation',
-  CONFLICT: 'conflict',
-  RATE_LIMITED: 'rate-limited',
-  BUSINESS: 'business',
-  SERVER: 'server',
-  UNEXPECTED: 'unexpected',
-} as const
-
-export const API_ERROR_TYPE = {
-  AUTH: 'auth',
-  BUSINESS: 'business',
-  NETWORK: 'network',
-  SERVER: 'server',
-  UNEXPECTED: 'unexpected',
-  VALIDATION: 'validation',
-} as const
-
-export type ApiErrorKind = typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND]
-
-export type ApiErrorType = typeof API_ERROR_TYPE[keyof typeof API_ERROR_TYPE]
-
-export interface MappedApiError {
-  type: ApiErrorType
-  message: string
-  details: ApiError
-  errors?: ApiValidationErrors
-}
-
-export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
-
-export type ApiErrorMessageResolver = (error: ApiError) => string | undefined
-
-export interface MapApiErrorOptions extends ApiErrorFactoryMessageOptions {
-  messages?: ApiErrorMessages
-  resolveMessage?: ApiErrorMessageResolver
-}
-
-export interface ApiErrorFactoryMessageContext {
-  kind: ApiErrorKind
-  cause?: unknown
-}
-
-export type ApiErrorFactoryMessageResolver = (
-  context: ApiErrorFactoryMessageContext,
-) => string | undefined
-
-export interface ApiErrorFactoryMessageOptions {
-  messages?: ApiErrorMessages
-  resolveFactoryMessage?: ApiErrorFactoryMessageResolver
-}
-
-export type HttpErrorMessages = Partial<Record<number, string>>
-
-export interface HttpErrorMessageContext {
-  statusCode?: number
-  statusText?: string
-  raw?: unknown
-}
-
-export type HttpErrorMessageResolver = (
-  context: HttpErrorMessageContext,
-) => string | undefined
-
-export interface HttpErrorMessageOptions {
-  httpMessages?: HttpErrorMessages
-  resolveHttpMessage?: HttpErrorMessageResolver
-}
-
-export interface ApiErrorAdapterOptions
-  extends HttpErrorMessageOptions,
-  ApiErrorFactoryMessageOptions {}
-
-export interface ApiErrorResponseLike {
-  status: number
-  statusText?: string
-  body?: unknown
-}
-
-interface ApiErrorParams {
-  kind: ApiErrorKind
-  message: string
-  statusCode?: number
-  validationErrors?: ApiValidationErrors
-  raw?: unknown
-  cause?: unknown
-}
+import { EN_API_ERROR_MESSAGE, EN_HTTP_ERROR_MESSAGE } from '../i18n/locales/en'
+import { STATUS_CODE } from '../constants/statusCode'
+import { API_ERROR_KIND, API_ERROR_TYPE } from '../constants/api'
+import type {
+  ApiErrorKind,
+  ApiErrorParams,
+  HttpErrorMessageOptions,
+  ApiErrorFactoryMessageOptions,
+  ApiErrorResponseLike,
+  MapApiErrorOptions,
+  MappedApiError,
+  ApiErrorType
+} from '../types/api'
 
 export class ApiError extends Error {
   readonly kind: ApiErrorKind
@@ -314,7 +232,7 @@ function getMappedApiErrorMessage(
     return customMessage
   }
 
-  const defaultMessage = EN_API_ERROR_MESSAGES[error.kind]
+  const defaultMessage = EN_API_ERROR_MESSAGE[error.kind]
 
   if (defaultMessage) {
     return defaultMessage
@@ -343,7 +261,7 @@ function getMappedApiErrorFactoryMessage(
     return customMessage
   }
 
-  const defaultMessage = EN_API_ERROR_MESSAGES[kind]
+  const defaultMessage = EN_API_ERROR_MESSAGE[kind]
 
   if (defaultMessage) {
     return defaultMessage
@@ -379,7 +297,7 @@ function getMappedHttpMessage(
   }
 
   const defaultMessage = statusCode !== undefined
-    ? EN_HTTP_ERROR_MESSAGES[statusCode]
+    ? EN_HTTP_ERROR_MESSAGE[statusCode]
     : undefined
 
   if (defaultMessage) {
@@ -387,7 +305,7 @@ function getMappedHttpMessage(
   }
 
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
-    return EN_HTTP_ERROR_MESSAGES[STATUS_CODE.INTERNAL_SERVER_ERROR] ?? 'Server error.'
+    return EN_HTTP_ERROR_MESSAGE[STATUS_CODE.INTERNAL_SERVER_ERROR] ?? 'Server error.'
   }
 
   if (statusText) {
