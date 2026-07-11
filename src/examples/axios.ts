@@ -1,6 +1,5 @@
 import axios from 'axios'
-import type { AxiosError } from 'axios'
-import { getAxiosError, normalizeApiError } from '../../lib/'
+import { getAxiosError } from '../../lib/'
 import type {
   ApiErrorAdapterOptions,
   MapApiErrorOptions,
@@ -10,8 +9,7 @@ import type {
 export interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions {}
 
 export interface ApiErrorHandler {
-  getAxiosError: <T = unknown, D = unknown>(error: AxiosError<T, D>) => ApiError
-  normalizeApiError: (error: unknown) => ApiError
+  getAxiosError: (error: unknown) => ApiError
 }
 
 export function createApiErrorHandler(
@@ -19,7 +17,6 @@ export function createApiErrorHandler(
 ): ApiErrorHandler {
   return {
     getAxiosError: (error) => getAxiosError(error, options),
-    normalizeApiError: (error) => normalizeApiError(error, options),
   }
 }
 
@@ -36,10 +33,7 @@ export async function axiosGet<T>(url: string): Promise<T> {
     const response = await axios.get<T>(url)
     return response.data
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw apiErrors.getAxiosError(error)
-    }
-    throw apiErrors.normalizeApiError(error)
+    throw apiErrors.getAxiosError(error)
   }
 }
 
@@ -51,9 +45,6 @@ export async function axiosPost<T>(
     const response = await axios.post<T>(url, payload)
     return response.data
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw apiErrors.getAxiosError(error)
-    }
-    throw apiErrors.normalizeApiError(error)
+    throw apiErrors.getAxiosError(error)
   }
 }

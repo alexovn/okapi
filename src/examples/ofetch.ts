@@ -1,5 +1,5 @@
-import { $fetch, FetchError, type FetchOptions } from 'ofetch'
-import { getOfetchError, normalizeApiError } from '../../lib'
+import { $fetch, type FetchOptions } from 'ofetch'
+import { getOfetchError } from '../../lib'
 import type {
   ApiErrorAdapterOptions,
   MapApiErrorOptions,
@@ -9,14 +9,12 @@ import type {
 interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions { }
 
 export interface ApiErrorHandler {
-  getOfetchError: <T = unknown>(error: FetchError<T>) => ApiError
-  normalizeApiError: (error: unknown) => ApiError
+  getOfetchError: (error: unknown) => ApiError
 }
 
 function createApiErrorHandler(options: ApiErrorHandlerOptions = {}): ApiErrorHandler {
   return {
     getOfetchError: (error) => getOfetchError(error, options),
-    normalizeApiError: (error) => normalizeApiError(error, options),
   }
 }
 
@@ -35,10 +33,7 @@ export async function ofetchGet<T>(
   try {
     return await $fetch<T>(url, options)
   } catch (error) {
-    if (error instanceof FetchError) {
-      throw apiErrors.getOfetchError(error)
-    }
-    throw apiErrors.normalizeApiError(error)
+    throw apiErrors.getOfetchError(error)
   }
 }
 
@@ -52,9 +47,6 @@ export async function ofetchPost<T>(
       method: 'POST',
     })
   } catch (error) {
-    if (error instanceof FetchError) {
-      throw apiErrors.getOfetchError(error)
-    }
-    throw apiErrors.normalizeApiError(error)
+    throw apiErrors.getOfetchError(error)
   }
 }

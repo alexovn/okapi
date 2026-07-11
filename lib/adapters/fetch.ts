@@ -1,4 +1,4 @@
-import { ApiError, createApiErrorFromResponse } from '../core/apiError'
+import { ApiError, createApiErrorFromResponse, normalizeApiError } from '../core/apiError'
 import type { ApiErrorAdapterOptions } from '../core/apiError'
 
 export interface FetchResponseLike {
@@ -40,7 +40,7 @@ export function getFetchError(
     return ApiError.getNetworkError(error, options)
   }
 
-  return ApiError.getUnexpectedError(error, options)
+  return normalizeApiError(error, options)
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
