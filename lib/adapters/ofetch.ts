@@ -12,21 +12,13 @@ export function getOfetchError(
     return normalizeApiError(error, options)
   }
 
-  const status = typeof error.response?.status === 'number'
-    ? error.response.status
-    : getNumber(error.status) ?? getNumber(error.statusCode)
-
-  if (typeof status === 'number') {
+  if (error.response) {
     return createApiErrorFromResponse({
-      status,
-      statusText: error.response?.statusText ?? error.statusText,
-      body: error.response?._data ?? error.data,
+      status: error.response.status,
+      statusText: error.response.statusText,
+      body: error.response._data,
     }, options)
   }
 
   return ApiError.getNetworkError(error, options)
-}
-
-function getNumber(value: unknown) {
-  return typeof value === 'number' ? value : undefined
 }
