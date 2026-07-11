@@ -6,6 +6,10 @@ export interface FetchResponseLike {
   statusText?: string
 }
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
 export function getFetchResponseError(
   response: FetchResponseLike,
   body?: unknown,
@@ -41,8 +45,4 @@ export function getFetchError(
   }
 
   return normalizeApiError(error, options)
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
 }
