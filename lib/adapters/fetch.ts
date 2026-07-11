@@ -6,7 +6,7 @@ export interface FetchResponseLike {
   statusText?: string
 }
 
-export function fromFetchResponse(
+export function getFetchResponseError(
   response: FetchResponseLike,
   body?: unknown,
   options?: ApiErrorAdapterOptions,
@@ -18,13 +18,13 @@ export function fromFetchResponse(
   }, options)
 }
 
-export function fromNativeError(
+export function getFetchError(
   error: unknown,
   body?: unknown,
   options?: ApiErrorAdapterOptions,
 ): ApiError {
   if (isObject(error) && typeof error.status === 'number') {
-    return fromFetchResponse(
+    return getFetchResponseError(
       {
         status: error.status,
         statusText: typeof error.statusText === 'string'
@@ -37,10 +37,10 @@ export function fromNativeError(
   }
 
   if (error instanceof TypeError) {
-    return ApiError.fromNetwork(error, options)
+    return ApiError.getNetworkError(error, options)
   }
 
-  return ApiError.fromUnexpected(error, options)
+  return ApiError.getUnexpectedError(error, options)
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

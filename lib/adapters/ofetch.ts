@@ -4,7 +4,7 @@ import type { ApiErrorAdapterOptions } from '../core/apiError'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 
-export function fromOfetchError<T = unknown>(
+export function getOfetchError<T = unknown>(
   error: FetchError<T>,
   options?: ApiErrorAdapterOptions,
 ): ApiError {
@@ -20,7 +20,7 @@ export function fromOfetchError<T = unknown>(
     }, options)
   }
 
-  return ApiError.fromNetwork(error, options)
+  return ApiError.getNetworkError(error, options)
 }
 
 function getNumber(value: unknown) {

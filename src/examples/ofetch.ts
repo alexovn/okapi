@@ -1,5 +1,32 @@
 import { $fetch, FetchError, type FetchOptions } from 'ofetch'
-import { apiErrors } from './shared'
+import { getOfetchError, normalizeApiError } from '../../lib'
+import type {
+  ApiErrorAdapterOptions,
+  MapApiErrorOptions,
+  ApiError,
+} from '../../lib'
+
+interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions { }
+
+export interface ApiErrorHandler {
+  getOfetchError: <T = unknown>(error: FetchError<T>) => ApiError
+  normalizeApiError: (error: unknown) => ApiError
+}
+
+function createApiErrorHandler(options: ApiErrorHandlerOptions = {}): ApiErrorHandler {
+  return {
+    getOfetchError: (error) => getOfetchError(error, options),
+    normalizeApiError: (error) => normalizeApiError(error, options),
+  }
+}
+
+const apiErrors = createApiErrorHandler({
+  resolveMessage: ({ kind }) => `API error: ${kind}`,
+  resolveFactoryMessage: ({ kind }) => `API error: ${kind}`,
+  resolveHttpMessage: ({ statusCode }) => {
+    return statusCode ? `HTTP error ${statusCode}` : undefined
+  },
+})
 
 export async function ofetchGet<T>(
   url: string,
@@ -9,9 +36,9 @@ export async function ofetchGet<T>(
     return await $fetch<T>(url, options)
   } catch (error) {
     if (error instanceof FetchError) {
-      throw apiErrors.fromOfetchError(error)
+      throw apiErrors.getOfetchError(error)
     }
-    throw apiErrors.normalize(error)
+    throw apiErrors.normalizeApiError(error)
   }
 }
 
@@ -26,8 +53,8 @@ export async function ofetchPost<T>(
     })
   } catch (error) {
     if (error instanceof FetchError) {
-      throw apiErrors.fromOfetchError(error)
+      throw apiErrors.getOfetchError(error)
     }
-    throw apiErrors.normalize(error)
+    throw apiErrors.normalizeApiError(error)
   }
 }

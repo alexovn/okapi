@@ -114,15 +114,15 @@ export class ApiError extends Error {
     Object.setPrototypeOf(this, new.target.prototype)
   }
 
-  get isNetworkError() {
+  get isNetworkError(): boolean {
     return this.kind === API_ERROR_KIND.NETWORK || this.kind === API_ERROR_KIND.ABORT
   }
 
-  get isValidationError() {
+  get isValidationError(): boolean {
     return this.kind === API_ERROR_KIND.VALIDATION
   }
 
-  static fromApiResponse(raw: ApiErrorResponse, statusCode?: number) {
+  static getApiResponseError(raw: ApiErrorResponse, statusCode?: number): ApiError {
     return new ApiError({
       kind: getKindFromStatus(statusCode, raw),
       message: raw.message || 'API error',
@@ -132,12 +132,12 @@ export class ApiError extends Error {
     })
   }
 
-  static fromHttpResponse(
+  static getHttpResponseError(
     statusCode: number,
     statusText?: string,
     raw?: unknown,
     options: HttpErrorMessageOptions = {},
-  ) {
+  ): ApiError {
     return new ApiError({
       kind: getKindFromStatus(statusCode),
       message: getMappedHttpMessage(statusCode, statusText, raw, options),
@@ -146,10 +146,10 @@ export class ApiError extends Error {
     })
   }
 
-  static fromNetwork(
+  static getNetworkError(
     error: unknown,
     options: ApiErrorFactoryMessageOptions = {},
-  ) {
+  ): ApiError {
     const kind = isAbortError(error)
       ? API_ERROR_KIND.ABORT
       : API_ERROR_KIND.NETWORK
@@ -161,10 +161,10 @@ export class ApiError extends Error {
     })
   }
 
-  static fromUnexpected(
+  static getUnexpectedError(
     error: unknown,
     options: ApiErrorFactoryMessageOptions = {},
-  ) {
+  ): ApiError {
     return new ApiError({
       kind: API_ERROR_KIND.UNEXPECTED,
       message: getMappedApiErrorFactoryMessage(
@@ -198,10 +198,10 @@ export function createApiErrorFromResponse(
   options: HttpErrorMessageOptions = {},
 ): ApiError {
   if (isApiErrorResponse(response.body)) {
-    return ApiError.fromApiResponse(response.body, response.status)
+    return ApiError.getApiResponseError(response.body, response.status)
   }
 
-  return ApiError.fromHttpResponse(
+  return ApiError.getHttpResponseError(
     response.status,
     response.statusText,
     response.body,
@@ -236,10 +236,10 @@ export function normalizeApiError(
   }
 
   if (isAbortError(error)) {
-    return ApiError.fromNetwork(error, options)
+    return ApiError.getNetworkError(error, options)
   }
 
-  return ApiError.fromUnexpected(error, options)
+  return ApiError.getUnexpectedError(error, options)
 }
 
 function getApiErrorType(error: ApiError): ApiErrorType {
@@ -301,7 +301,7 @@ function getKindFromStatus(
 function getMappedApiErrorMessage(
   error: ApiError,
   options: MapApiErrorOptions,
-) {
+): string {
   const resolvedMessage = options.resolveMessage?.(error)
 
   if (resolvedMessage) {
@@ -397,7 +397,7 @@ function getMappedHttpMessage(
   return `HTTP error ${statusCode ?? 'unknown'}.`
 }
 
-function isAbortError(error: unknown) {
+function isAbortError(error: unknown): boolean {
   return isObject(error) && error.name === 'AbortError'
 }
 

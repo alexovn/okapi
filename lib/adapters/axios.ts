@@ -4,7 +4,7 @@ import type { ApiErrorAdapterOptions } from '../core/apiError'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 
-export function fromAxiosError<T = unknown, D = unknown>(
+export function getAxiosError<T = unknown, D = unknown>(
   error: AxiosError<T, D>,
   options?: ApiErrorAdapterOptions,
 ): ApiError {
@@ -16,5 +16,5 @@ export function fromAxiosError<T = unknown, D = unknown>(
     }, options)
   }
 
-  return ApiError.fromNetwork(error, options)
+  return ApiError.getNetworkError(error, options)
 }
