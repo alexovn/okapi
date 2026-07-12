@@ -1,29 +1,13 @@
 {
-  "name": "okapi",
+  "name": "@alexovn/okapi-workspace",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "tsc --noEmit --watch && vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build:lib": "pnpm --filter @alexovn/okapi build",
+    "dev:playground": "pnpm --filter @alexovn/okapi-playground dev"
   },
-  "peerDependencies": {
-    "axios": "^1.18.1",
-    "ofetch": "^1.5.1"
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11"
   },
-  "peerDependenciesMeta": {
-    "axios": {
-      "optional": true
-    },
-    "ofetch": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
-    "axios": "^1.18.1",
-    "ofetch": "^1.5.1",
-    "typescript": "~6.0.2",
-    "vite": "^8.0.12"
-  }
+  "packageManager": "pnpm@11.5.0"
 }

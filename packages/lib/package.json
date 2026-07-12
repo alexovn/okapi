@@ -1,0 +1,53 @@
+{
+  "name": "@alexovn/okapi",
+  "type": "module",
+  "version": "1.0.0",
+  "private": false,
+  "description": "An API errors handling library",
+  "author": "Nikita Aleksov (https://github.com/alexovn/)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexovn/okapi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexovn/okapi/issues"
+  },
+  "homepage": "https://github.com/alexovn/okapi#readme",
+  "keywords": ["api", "errors", "fetch", "ofetch", "axios", "okapi"],
+  "exports": {
+    ".": {
+      "types": "./dist/okapi.d.ts",
+      "import": "./dist/okapi.js",
+      "default": "./dist/okapi.js"
+    }
+  },
+  "main": "./dist/okapi.js",
+  "module": "./dist/okapi.js",
+  "types": "./dist/okapi.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "axios": "^1.18.1",
+    "ofetch": "^1.5.1"
+  },
+  "peerDependenciesMeta": {
+    "axios": { "optional": true },
+    "ofetch": { "optional": true }
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.52.0",
+    "axios": "^1.18.1",
+    "ofetch": "^1.5.1",
+    "typescript": "~6.0.2",
+    "unplugin-dts": "^1.0.3",
+    "vite": "^8.0.12"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=11"
+  }
+}

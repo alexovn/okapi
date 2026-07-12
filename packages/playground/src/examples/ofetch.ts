@@ -1,10 +1,10 @@
 import { $fetch, type FetchOptions } from 'ofetch'
-import { getOfetchError } from '../../lib'
+import { getOfetchError } from '@alexovn/okapi'
 import type {
   ApiErrorAdapterOptions,
   MapApiErrorOptions,
   ApiError,
-} from '../../lib'
+} from '@alexovn/okapi'
 
 interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions {}
 

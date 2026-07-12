@@ -1,10 +1,10 @@
-import { getFetchResponseError, getFetchError } from '../../lib'
+import { getFetchResponseError, getFetchError } from '@alexovn/okapi'
 import type {
   ApiErrorAdapterOptions,
   MapApiErrorOptions,
   FetchResponseLike,
   ApiError
-} from '../../lib'
+} from '@alexovn/okapi'
 
 interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions {}
 

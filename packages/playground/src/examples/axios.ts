@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { getAxiosError } from '../../lib/'
+import { getAxiosError } from '@alexovn/okapi'
 import type {
   ApiErrorAdapterOptions,
   MapApiErrorOptions,
   ApiError,
-} from '../../lib'
+} from '@alexovn/okapi'
 
 export interface ApiErrorHandlerOptions extends ApiErrorAdapterOptions, MapApiErrorOptions {}
 
