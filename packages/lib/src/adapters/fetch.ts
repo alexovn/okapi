@@ -1,10 +1,20 @@
-import { ApiError, createApiErrorFromResponse, normalizeApiError } from '../core/apiError'
-import type { ApiErrorAdapterOptions } from '../types/api'
+import { ApiError, createApiErrorFromResponse, mapApiError, normalizeApiError } from '../core/apiError'
+import type { ApiErrorAdapterOptions, MappedApiError } from '../types/api'
 
 export interface FetchResponseLike {
   status: number
   statusText?: string
 }
+
+export type FetchResponseErrorMapper = (
+  response: FetchResponseLike,
+  body?: unknown,
+) => MappedApiError
+
+export type FetchErrorMapper = (
+  error: unknown,
+  body?: unknown,
+) => MappedApiError
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -45,4 +55,22 @@ export function getFetchError(
   }
 
   return normalizeApiError(error, options)
+}
+
+export function createFetchResponseErrorMapper(
+  options: ApiErrorAdapterOptions = {},
+): FetchResponseErrorMapper {
+  return (response, body) => mapApiError(
+    getFetchResponseError(response, body, options),
+    options,
+  )
+}
+
+export function createFetchErrorMapper(
+  options: ApiErrorAdapterOptions = {},
+): FetchErrorMapper {
+  return (error, body) => mapApiError(
+    getFetchError(error, body, options),
+    options,
+  )
 }

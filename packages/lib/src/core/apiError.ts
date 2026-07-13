@@ -220,13 +220,13 @@ function getMappedApiErrorMessage(
   error: ApiError,
   options: MapApiErrorOptions,
 ): string {
-  const resolvedMessage = options.resolveMessage?.(error)
+  const resolvedMessage = options.i18n?.api?.resolveMessage?.(error)
 
   if (resolvedMessage) {
     return resolvedMessage
   }
 
-  const customMessage = options.messages?.[error.kind]
+  const customMessage = options.i18n?.api?.messages?.[error.kind]
 
   if (customMessage) {
     return customMessage
@@ -246,7 +246,7 @@ function getMappedApiErrorFactoryMessage(
   cause: unknown,
   options: ApiErrorFactoryMessageOptions,
 ): string {
-  const resolvedMessage = options.resolveFactoryMessage?.({
+  const resolvedMessage = options.i18n?.api?.resolveFactoryMessage?.({
     kind,
     cause,
   })
@@ -255,7 +255,7 @@ function getMappedApiErrorFactoryMessage(
     return resolvedMessage
   }
 
-  const customMessage = options.messages?.[kind]
+  const customMessage = options.i18n?.api?.messages?.[kind]
 
   if (customMessage) {
     return customMessage
@@ -278,7 +278,7 @@ function getMappedHttpMessage(
   raw?: unknown,
   options: HttpErrorMessageOptions = {},
 ): string {
-  const resolvedMessage = options.resolveHttpMessage?.({
+  const resolvedMessage = options.i18n?.http?.resolveMessage?.({
     statusCode,
     statusText,
     raw,
@@ -289,7 +289,7 @@ function getMappedHttpMessage(
   }
 
   const customMessage = statusCode !== undefined
-    ? options.httpMessages?.[statusCode]
+    ? options.i18n?.http?.messages?.[statusCode]
     : undefined
 
   if (customMessage) {

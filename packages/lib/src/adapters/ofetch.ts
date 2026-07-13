@@ -1,6 +1,6 @@
 import { FetchError } from 'ofetch'
-import { ApiError, createApiErrorFromResponse, normalizeApiError } from '../core/apiError'
-import type { ApiErrorAdapterOptions } from '../types/api'
+import { ApiError, createApiErrorFromResponse, mapApiError, normalizeApiError } from '../core/apiError'
+import type { ApiErrorAdapterOptions, ApiErrorMapper } from '../types/api'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 
@@ -21,4 +21,10 @@ export function getOfetchError(
   }
 
   return ApiError.getNetworkError(error, options)
+}
+
+export function createOfetchErrorMapper(
+  options: ApiErrorAdapterOptions = {},
+): ApiErrorMapper {
+  return error => mapApiError(getOfetchError(error, options), options)
 }

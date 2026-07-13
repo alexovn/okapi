@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios'
 import type { AxiosError } from 'axios'
-import { ApiError, createApiErrorFromResponse, normalizeApiError } from '../core/apiError'
-import type { ApiErrorAdapterOptions } from '../types/api'
+import { ApiError, createApiErrorFromResponse, mapApiError, normalizeApiError } from '../core/apiError'
+import type { ApiErrorAdapterOptions, ApiErrorMapper } from '../types/api'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 
@@ -22,4 +22,10 @@ export function getAxiosError(
   }
 
   return ApiError.getNetworkError(error, options)
+}
+
+export function createAxiosErrorMapper(
+  options: ApiErrorAdapterOptions = {},
+): ApiErrorMapper {
+  return error => mapApiError(getAxiosError(error, options), options)
 }
