@@ -268,8 +268,8 @@ function getMappedApiErrorFactoryMessage(
   }
 
   return kind === API_ERROR_KIND.UNEXPECTED
-    ? 'Unexpected application error.'
-    : 'Network error.'
+    ? EN_API_ERROR_MESSAGE[API_ERROR_KIND.UNEXPECTED]
+    : EN_API_ERROR_MESSAGE[API_ERROR_KIND.NETWORK]
 }
 
 function getMappedHttpMessage(
@@ -305,7 +305,8 @@ function getMappedHttpMessage(
   }
 
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
-    return EN_HTTP_ERROR_MESSAGE[STATUS_CODE.INTERNAL_SERVER_ERROR] ?? 'Server error.'
+    return EN_HTTP_ERROR_MESSAGE[STATUS_CODE.INTERNAL_SERVER_ERROR]
+      ?? EN_API_ERROR_MESSAGE[API_ERROR_KIND.SERVER]
   }
 
   if (statusText) {
