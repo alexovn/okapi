@@ -35,7 +35,6 @@ export interface ApiErrorI18nOptions {
 export interface ApiErrorI18nApiOptions {
   messages?: ApiErrorMessages
   resolveMessage?: ApiErrorMessageResolver
-  resolveFactoryMessage?: ApiErrorFactoryMessageResolver
 }
 
 export interface ApiErrorI18nHttpOptions {
@@ -48,17 +47,6 @@ export interface ApiErrorOptions {
 }
 
 export interface MapApiErrorOptions extends ApiErrorOptions {}
-
-export interface ApiErrorFactoryMessageContext {
-  kind: ApiErrorKind
-  cause?: unknown
-}
-
-export type ApiErrorFactoryMessageResolver = (
-  context: ApiErrorFactoryMessageContext,
-) => string | undefined
-
-export interface ApiErrorFactoryMessageOptions extends ApiErrorOptions {}
 
 export type HttpErrorMessages = Partial<Record<number, string>>
 

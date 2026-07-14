@@ -5,7 +5,6 @@ const mapAxiosError = createAxiosErrorMapper({
   i18n: {
     api: {
       resolveMessage: ({ kind }) => `API error: ${kind}`,
-      resolveFactoryMessage: ({ kind }) => `API error: ${kind}`,
     },
     http: {
       resolveMessage: ({ statusCode }) => {

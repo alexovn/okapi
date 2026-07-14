@@ -6,7 +6,7 @@ import type {
   ApiErrorKind,
   ApiErrorParams,
   HttpErrorMessageOptions,
-  ApiErrorFactoryMessageOptions,
+  ApiErrorOptions,
   ApiErrorResponseLike,
   MapApiErrorOptions,
   MappedApiError,
@@ -66,7 +66,7 @@ export class ApiError extends Error {
 
   static getNetworkError(
     error: unknown,
-    options: ApiErrorFactoryMessageOptions = {},
+    options: ApiErrorOptions = {},
   ): ApiError {
     const kind = isAbortError(error)
       ? API_ERROR_KIND.ABORT
@@ -74,22 +74,18 @@ export class ApiError extends Error {
 
     return new ApiError({
       kind,
-      message: getMappedApiErrorFactoryMessage(kind, error, options),
+      message: getApiErrorMessageForKind(kind, options),
       cause: error,
     })
   }
 
   static getUnexpectedError(
     error: unknown,
-    options: ApiErrorFactoryMessageOptions = {},
+    options: ApiErrorOptions = {},
   ): ApiError {
     return new ApiError({
       kind: API_ERROR_KIND.UNEXPECTED,
-      message: getMappedApiErrorFactoryMessage(
-        API_ERROR_KIND.UNEXPECTED,
-        error,
-        options,
-      ),
+      message: getApiErrorMessageForKind(API_ERROR_KIND.UNEXPECTED, options),
       cause: error,
     })
   }
@@ -147,7 +143,7 @@ export function mapApiError(
 
 export function normalizeApiError(
   error: unknown,
-  options: ApiErrorFactoryMessageOptions = {},
+  options: ApiErrorOptions = {},
 ): ApiError {
   if (error instanceof ApiError) {
     return error
@@ -241,35 +237,13 @@ function getMappedApiErrorMessage(
   return error.message
 }
 
-function getMappedApiErrorFactoryMessage(
+function getApiErrorMessageForKind(
   kind: ApiErrorKind,
-  cause: unknown,
-  options: ApiErrorFactoryMessageOptions,
+  options: ApiErrorOptions,
 ): string {
-  const resolvedMessage = options.i18n?.api?.resolveFactoryMessage?.({
-    kind,
-    cause,
-  })
-
-  if (resolvedMessage) {
-    return resolvedMessage
-  }
-
   const customMessage = options.i18n?.api?.messages?.[kind]
 
-  if (customMessage) {
-    return customMessage
-  }
-
-  const defaultMessage = EN_API_ERROR_MESSAGE[kind]
-
-  if (defaultMessage) {
-    return defaultMessage
-  }
-
-  return kind === API_ERROR_KIND.UNEXPECTED
-    ? EN_API_ERROR_MESSAGE[API_ERROR_KIND.UNEXPECTED]
-    : EN_API_ERROR_MESSAGE[API_ERROR_KIND.NETWORK]
+  return customMessage ?? EN_API_ERROR_MESSAGE[kind]
 }
 
 function getMappedHttpMessage(
