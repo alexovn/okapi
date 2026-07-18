@@ -16,6 +16,13 @@ export type ApiErrorKind = typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND]
 
 export type ApiErrorType = typeof API_ERROR_TYPE[keyof typeof API_ERROR_TYPE]
 
+export type ApiErrorSource =
+  | 'api'
+  | 'http'
+  | 'network'
+  | 'unexpected'
+  | 'custom'
+
 export interface MappedApiError {
   type: ApiErrorType
   message: string
@@ -25,21 +32,14 @@ export interface MappedApiError {
 
 export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
 
+export type ApiErrorStatusMessages = Partial<Record<number, string>>
+
 export type ApiErrorMessageResolver = (error: ApiError) => string | undefined
 
 export interface ApiErrorI18nOptions {
-  api?: ApiErrorI18nApiOptions
-  http?: ApiErrorI18nHttpOptions
-}
-
-export interface ApiErrorI18nApiOptions {
   messages?: ApiErrorMessages
+  statusMessages?: ApiErrorStatusMessages
   resolveMessage?: ApiErrorMessageResolver
-}
-
-export interface ApiErrorI18nHttpOptions {
-  messages?: HttpErrorMessages
-  resolveMessage?: HttpErrorMessageResolver
 }
 
 export interface ApiErrorOptions {
@@ -47,20 +47,6 @@ export interface ApiErrorOptions {
 }
 
 export interface MapApiErrorOptions extends ApiErrorOptions {}
-
-export type HttpErrorMessages = Partial<Record<number, string>>
-
-export interface HttpErrorMessageContext {
-  statusCode?: number
-  statusText?: string
-  raw?: unknown
-}
-
-export type HttpErrorMessageResolver = (
-  context: HttpErrorMessageContext,
-) => string | undefined
-
-export interface HttpErrorMessageOptions extends ApiErrorOptions {}
 
 export interface ApiErrorAdapterOptions extends ApiErrorOptions {}
 
@@ -75,8 +61,13 @@ export interface ApiErrorResponseLike {
 export interface ApiErrorParams {
   kind: ApiErrorKind
   message: string
+  /** Identifies which normalization path produced the error. */
+  source?: ApiErrorSource
   statusCode?: number
+  statusText?: string
   validationErrors?: ApiValidationErrors
   raw?: unknown
+  /** Original API response message. It is never displayed implicitly. */
+  rawMessage?: string
   cause?: unknown
 }

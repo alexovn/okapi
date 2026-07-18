@@ -1,5 +1,5 @@
 import type { STATUS_CODE } from '../../constants'
-import type { ApiErrorKind, HttpErrorMessages } from '../../types/api'
+import type { ApiErrorKind } from '../../types/api'
 
 export const EN_API_ERROR_MESSAGE = {
   network: 'Network unavailable',
@@ -15,7 +15,7 @@ export const EN_API_ERROR_MESSAGE = {
   unexpected: 'Unexpected error occurred',
 } satisfies Record<ApiErrorKind, string>
 
-export const EN_HTTP_ERROR_MESSAGE: HttpErrorMessages = {
+export const EN_HTTP_ERROR_MESSAGE: Partial<Record<number, string>> = {
   400: 'Bad request',
   401: 'Unauthorized',
   403: 'Forbidden',

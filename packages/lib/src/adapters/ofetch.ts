@@ -26,5 +26,5 @@ export function getOfetchError(
 export function createOfetchErrorMapper(
   options: ApiErrorAdapterOptions = {},
 ): ApiErrorMapper {
-  return error => mapApiError(getOfetchError(error, options), options)
+  return error => mapApiError(getOfetchError(error), options)
 }

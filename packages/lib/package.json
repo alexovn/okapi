@@ -28,6 +28,7 @@
   "files": ["dist"],
   "scripts": {
     "build": "tsc && vite build",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -44,7 +45,8 @@
     "ofetch": "^1.5.1",
     "typescript": "~6.0.2",
     "unplugin-dts": "^1.0.3",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vitest": "^4.1.10"
   },
   "engines": {
     "node": ">=22",

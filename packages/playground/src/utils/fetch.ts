@@ -5,13 +5,8 @@ import {
 
 const options = {
   i18n: {
-    api: {
-      resolveMessage: ({ kind }) => `API error: ${kind}`,
-    },
-    http: {
-      resolveMessage: ({ statusCode }) => {
-        return statusCode ? `HTTP error ${statusCode}` : undefined
-      },
+    resolveMessage: ({ kind, statusCode }) => {
+      return statusCode ? `HTTP error ${statusCode}` : `API error: ${kind}`
     },
   },
 } satisfies Parameters<typeof createFetchErrorMapper>[0]

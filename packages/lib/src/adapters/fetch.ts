@@ -61,7 +61,7 @@ export function createFetchResponseErrorMapper(
   options: ApiErrorAdapterOptions = {},
 ): FetchResponseErrorMapper {
   return (response, body) => mapApiError(
-    getFetchResponseError(response, body, options),
+    getFetchResponseError(response, body),
     options,
   )
 }
@@ -70,7 +70,7 @@ export function createFetchErrorMapper(
   options: ApiErrorAdapterOptions = {},
 ): FetchErrorMapper {
   return (error, body) => mapApiError(
-    getFetchError(error, body, options),
+    getFetchError(error, body),
     options,
   )
 }

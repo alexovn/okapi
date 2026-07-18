@@ -27,5 +27,5 @@ export function getAxiosError(
 export function createAxiosErrorMapper(
   options: ApiErrorAdapterOptions = {},
 ): ApiErrorMapper {
-  return error => mapApiError(getAxiosError(error, options), options)
+  return error => mapApiError(getAxiosError(error), options)
 }

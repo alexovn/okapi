@@ -5,29 +5,34 @@ import { API_ERROR_KIND, API_ERROR_TYPE } from '../constants/api'
 import type {
   ApiErrorKind,
   ApiErrorParams,
-  HttpErrorMessageOptions,
   ApiErrorOptions,
   ApiErrorResponseLike,
   MapApiErrorOptions,
   MappedApiError,
-  ApiErrorType
+  ApiErrorType,
+  ApiErrorSource,
 } from '../types/api'
 
 export class ApiError extends Error {
   readonly kind: ApiErrorKind
+  readonly source: ApiErrorSource
   readonly statusCode?: number
+  readonly statusText?: string
   readonly validationErrors?: ApiValidationErrors
   readonly raw?: unknown
-  override readonly cause?: unknown
+  readonly rawMessage?: string
 
   constructor(params: ApiErrorParams) {
     super(params.message, { cause: params.cause })
 
     this.name = 'ApiError'
     this.kind = params.kind
+    this.source = params.source ?? 'custom'
     this.statusCode = params.statusCode
+    this.statusText = params.statusText
     this.validationErrors = params.validationErrors
     this.raw = params.raw
+    this.rawMessage = params.rawMessage
 
     Object.setPrototypeOf(this, new.target.prototype)
   }
@@ -40,13 +45,22 @@ export class ApiError extends Error {
     return this.kind === API_ERROR_KIND.VALIDATION
   }
 
-  static getApiResponseError(raw: ApiErrorResponse, statusCode?: number): ApiError {
+  static getApiResponseError(
+    raw: ApiErrorResponse,
+    statusCode?: number,
+    statusText?: string,
+  ): ApiError {
+    const kind = getKindFromStatus(statusCode, raw)
+
     return new ApiError({
-      kind: getKindFromStatus(statusCode, raw),
-      message: raw.message || 'API error',
+      kind,
+      source: 'api',
+      message: EN_API_ERROR_MESSAGE[kind],
       statusCode,
+      statusText,
       validationErrors: raw.errors,
       raw,
+      rawMessage: raw.message,
     })
   }
 
@@ -54,12 +68,19 @@ export class ApiError extends Error {
     statusCode: number,
     statusText?: string,
     raw?: unknown,
-    options: HttpErrorMessageOptions = {},
+    options: ApiErrorOptions = {},
   ): ApiError {
+    const kind = getKindFromStatus(statusCode)
+
     return new ApiError({
-      kind: getKindFromStatus(statusCode),
-      message: getMappedHttpMessage(statusCode, statusText, raw, options),
+      kind,
+      source: 'http',
+      message: options.i18n?.statusMessages?.[statusCode]
+        ?? options.i18n?.messages?.[kind]
+        ?? getDefaultHttpMessage(statusCode, statusText)
+        ?? EN_API_ERROR_MESSAGE[kind],
       statusCode,
+      statusText,
       raw,
     })
   }
@@ -74,6 +95,7 @@ export class ApiError extends Error {
 
     return new ApiError({
       kind,
+      source: 'network',
       message: getApiErrorMessageForKind(kind, options),
       cause: error,
     })
@@ -85,6 +107,7 @@ export class ApiError extends Error {
   ): ApiError {
     return new ApiError({
       kind: API_ERROR_KIND.UNEXPECTED,
+      source: 'unexpected',
       message: getApiErrorMessageForKind(API_ERROR_KIND.UNEXPECTED, options),
       cause: error,
     })
@@ -109,10 +132,14 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
 
 export function createApiErrorFromResponse(
   response: ApiErrorResponseLike,
-  options: HttpErrorMessageOptions = {},
+  options: ApiErrorOptions = {},
 ): ApiError {
   if (isApiErrorResponse(response.body)) {
-    return ApiError.getApiResponseError(response.body, response.status)
+    return ApiError.getApiResponseError(
+      response.body,
+      response.status,
+      response.statusText,
+    )
   }
 
   return ApiError.getHttpResponseError(
@@ -216,22 +243,24 @@ function getMappedApiErrorMessage(
   error: ApiError,
   options: MapApiErrorOptions,
 ): string {
-  const resolvedMessage = options.i18n?.api?.resolveMessage?.(error)
+  const resolvedMessage = options.i18n?.resolveMessage?.(error)
 
-  if (resolvedMessage) {
+  if (resolvedMessage !== undefined) {
     return resolvedMessage
   }
 
-  const customMessage = options.i18n?.api?.messages?.[error.kind]
+  const statusMessage = error.statusCode !== undefined
+    ? options.i18n?.statusMessages?.[error.statusCode]
+    : undefined
 
-  if (customMessage) {
-    return customMessage
+  if (statusMessage !== undefined) {
+    return statusMessage
   }
 
-  const defaultMessage = EN_API_ERROR_MESSAGE[error.kind]
+  const customMessage = options.i18n?.messages?.[error.kind]
 
-  if (defaultMessage) {
-    return defaultMessage
+  if (customMessage !== undefined) {
+    return customMessage
   }
 
   return error.message
@@ -241,40 +270,20 @@ function getApiErrorMessageForKind(
   kind: ApiErrorKind,
   options: ApiErrorOptions,
 ): string {
-  const customMessage = options.i18n?.api?.messages?.[kind]
+  const customMessage = options.i18n?.messages?.[kind]
 
   return customMessage ?? EN_API_ERROR_MESSAGE[kind]
 }
 
-function getMappedHttpMessage(
+function getDefaultHttpMessage(
   statusCode?: number,
   statusText?: string,
-  raw?: unknown,
-  options: HttpErrorMessageOptions = {},
-): string {
-  const resolvedMessage = options.i18n?.http?.resolveMessage?.({
-    statusCode,
-    statusText,
-    raw,
-  })
-
-  if (resolvedMessage) {
-    return resolvedMessage
-  }
-
-  const customMessage = statusCode !== undefined
-    ? options.i18n?.http?.messages?.[statusCode]
-    : undefined
-
-  if (customMessage) {
-    return customMessage
-  }
-
+): string | undefined {
   const defaultMessage = statusCode !== undefined
     ? EN_HTTP_ERROR_MESSAGE[statusCode]
     : undefined
 
-  if (defaultMessage) {
+  if (defaultMessage !== undefined) {
     return defaultMessage
   }
 
@@ -287,7 +296,7 @@ function getMappedHttpMessage(
     return statusText
   }
 
-  return `HTTP error ${statusCode ?? 'unknown'}.`
+  return undefined
 }
 
 function isAbortError(error: unknown): boolean {
