@@ -74,7 +74,5 @@ export interface ApiErrorParams {
   statusText?: string
   validationErrors?: ApiValidationErrors
   raw?: unknown
-  /** Original API response message. It is never displayed implicitly. */
-  rawMessage?: string
   cause?: unknown
 }

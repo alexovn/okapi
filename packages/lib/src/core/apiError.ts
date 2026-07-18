@@ -24,7 +24,6 @@ export class ApiError extends Error {
   readonly statusText?: string
   readonly validationErrors?: ApiValidationErrors
   readonly raw?: unknown
-  readonly rawMessage?: string
 
   constructor(params: ApiErrorParams) {
     super(params.message, { cause: params.cause })
@@ -36,9 +35,12 @@ export class ApiError extends Error {
     this.statusText = params.statusText
     this.validationErrors = params.validationErrors
     this.raw = params.raw
-    this.rawMessage = params.rawMessage
 
     Object.setPrototypeOf(this, new.target.prototype)
+  }
+
+  get rawMessage(): string | undefined {
+    return isApiErrorResponse(this.raw) ? this.raw.message : undefined
   }
 
   get isNetworkError(): boolean {
@@ -64,7 +66,6 @@ export class ApiError extends Error {
       statusText,
       validationErrors: raw.errors,
       raw,
-      rawMessage: raw.message,
     })
   }
 
