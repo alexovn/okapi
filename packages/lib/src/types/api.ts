@@ -25,20 +25,27 @@ export type ApiErrorSource =
 
 export interface MappedApiError {
   type: ApiErrorType
+  title: string
   message: string
   details: ApiError
   errors?: ApiValidationErrors
 }
 
-export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
+export type ApiErrorTitles = Partial<Record<ApiErrorKind, string>>
 
-export type ApiErrorStatusMessages = Partial<Record<number, string>>
+export type ApiErrorStatusTitles = Partial<Record<number, string>>
+
+export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
 
 export type ApiErrorMessageResolver = (error: ApiError) => string | undefined
 
+export type ApiErrorTitleResolver = (error: ApiError) => string | undefined
+
 export interface ApiErrorI18nOptions {
+  titles?: ApiErrorTitles
+  statusTitles?: ApiErrorStatusTitles
   messages?: ApiErrorMessages
-  statusMessages?: ApiErrorStatusMessages
+  resolveTitle?: ApiErrorTitleResolver
   resolveMessage?: ApiErrorMessageResolver
 }
 

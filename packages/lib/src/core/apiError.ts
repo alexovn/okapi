@@ -1,5 +1,9 @@
 import type { ApiErrorResponse, ApiValidationErrors } from '../types/api'
-import { EN_API_ERROR_MESSAGE, EN_HTTP_ERROR_MESSAGE } from '../i18n/locales/en'
+import {
+  EN_API_ERROR_MESSAGE,
+  EN_API_ERROR_TITLE,
+  EN_HTTP_ERROR_TITLE,
+} from '../i18n/locales/en'
 import { STATUS_CODE } from '../constants/statusCode'
 import { API_ERROR_KIND, API_ERROR_TYPE } from '../constants/api'
 import type {
@@ -75,10 +79,7 @@ export class ApiError extends Error {
     return new ApiError({
       kind,
       source: 'http',
-      message: options.i18n?.statusMessages?.[statusCode]
-        ?? options.i18n?.messages?.[kind]
-        ?? getDefaultHttpMessage(statusCode, statusText)
-        ?? EN_API_ERROR_MESSAGE[kind],
+      message: options.i18n?.messages?.[kind] ?? EN_API_ERROR_MESSAGE[kind],
       statusCode,
       statusText,
       raw,
@@ -157,6 +158,7 @@ export function mapApiError(
   const apiError = normalizeApiError(error, options)
   const mappedError: MappedApiError = {
     type: getApiErrorType(apiError),
+    title: getMappedApiErrorTitle(apiError, options),
     message: getMappedApiErrorMessage(apiError, options),
     details: apiError,
   }
@@ -249,14 +251,6 @@ function getMappedApiErrorMessage(
     return resolvedMessage
   }
 
-  const statusMessage = error.statusCode !== undefined
-    ? options.i18n?.statusMessages?.[error.statusCode]
-    : undefined
-
-  if (statusMessage !== undefined) {
-    return statusMessage
-  }
-
   const customMessage = options.i18n?.messages?.[error.kind]
 
   if (customMessage !== undefined) {
@@ -264,6 +258,34 @@ function getMappedApiErrorMessage(
   }
 
   return error.message
+}
+
+function getMappedApiErrorTitle(
+  error: ApiError,
+  options: MapApiErrorOptions,
+): string {
+  const resolvedTitle = options.i18n?.resolveTitle?.(error)
+
+  if (resolvedTitle !== undefined) {
+    return resolvedTitle
+  }
+
+  const statusTitle = error.statusCode !== undefined
+    ? options.i18n?.statusTitles?.[error.statusCode]
+    : undefined
+
+  if (statusTitle !== undefined) {
+    return statusTitle
+  }
+
+  const customTitle = options.i18n?.titles?.[error.kind]
+
+  if (customTitle !== undefined) {
+    return customTitle
+  }
+
+  return getDefaultHttpTitle(error.statusCode, error.statusText)
+    ?? EN_API_ERROR_TITLE[error.kind]
 }
 
 function getApiErrorMessageForKind(
@@ -275,21 +297,21 @@ function getApiErrorMessageForKind(
   return customMessage ?? EN_API_ERROR_MESSAGE[kind]
 }
 
-function getDefaultHttpMessage(
+function getDefaultHttpTitle(
   statusCode?: number,
   statusText?: string,
 ): string | undefined {
-  const defaultMessage = statusCode !== undefined
-    ? EN_HTTP_ERROR_MESSAGE[statusCode]
+  const defaultTitle = statusCode !== undefined
+    ? EN_HTTP_ERROR_TITLE[statusCode]
     : undefined
 
-  if (defaultMessage !== undefined) {
-    return defaultMessage
+  if (defaultTitle !== undefined) {
+    return defaultTitle
   }
 
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
-    return EN_HTTP_ERROR_MESSAGE[STATUS_CODE.INTERNAL_SERVER_ERROR]
-      ?? EN_API_ERROR_MESSAGE[API_ERROR_KIND.SERVER]
+    return EN_HTTP_ERROR_TITLE[STATUS_CODE.INTERNAL_SERVER_ERROR]
+      ?? EN_API_ERROR_TITLE[API_ERROR_KIND.SERVER]
   }
 
   if (statusText) {

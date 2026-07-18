@@ -2,67 +2,32 @@ import { expect, test } from 'vitest'
 
 import {
   ApiError,
-  ApiErrorOptions,
   createFetchErrorMapper,
   createFetchResponseErrorMapper,
   mapApiError,
 } from '../src'
 
-test('resolveMessage prop handles HTTP errors', () => {
+import { TITLES, MESSAGES, HTTP_CASES } from './constants'
+
+import type { ApiErrorOptions } from '../src'
+
+test('resolvers take precedence over configured titles and messages', () => {
   const options: ApiErrorOptions = {
     i18n: {
-      resolveMessage: ({ kind }) => {
-        if (kind === 'not-found') {
-          return 'foo'
-        }
-        return 'bar'
-      },
+      resolveTitle: () => 'Project unavailable',
+      resolveMessage: () => 'This project has been archived.',
+      titles: { 'not-found': 'Resource not found' },
+      statusTitles: { 404: 'Page not found' },
+      messages: { 'not-found': 'The requested project could not be found.' },
     },
   }
 
   const error = ApiError.getHttpResponseError(404, 'Not Found')
-  expect(mapApiError(error, options).message).toBe('foo')
+  expect(mapApiError(error, options)).toMatchObject({
+    title: 'Project unavailable',
+    message: 'This project has been archived.',
+  })
 })
-
-test('messages prop handles HTTP errors', () => {
-  const options: ApiErrorOptions = {
-    i18n: {
-      messages: { 'not-found': 'foo' },
-    },
-  }
-
-  const error = ApiError.getHttpResponseError(404, 'Not Found')
-  expect(mapApiError(error, options).message).toBe('foo')
-})
-
-test('statusMessages prop handles HTTP errors', () => {
-  const options: ApiErrorOptions = {
-    i18n: {
-      statusMessages: { 404: 'foo' },
-    },
-  }
-
-  const error = ApiError.getHttpResponseError(404, 'Not Found')
-  expect(mapApiError(error, options).message).toBe('foo')
-})
-
-test('resolveMessage prop takes precedence over statusMessages and messages props', () => {
-  const error = ApiError.getHttpResponseError(404, 'Not Found')
-
-  expect(mapApiError(error, {
-    i18n: {
-      resolveMessage: ({ kind }) => {
-        if (kind === 'not-found') {
-          return 'foo'
-        }
-        return 'bar'
-      },
-      statusMessages: { 404: 'baz' },
-      messages: { 'not-found': 'qux' },
-    },
-  }).message).toBe('foo')
-})
-
 
 test('resolveMessage prop handles network and unexpected errors dynamically', () => {
   const mapError = createFetchErrorMapper({
@@ -74,7 +39,7 @@ test('resolveMessage prop handles network and unexpected errors dynamically', ()
         if (kind === 'unexpected' && cause instanceof Error) {
           return `Unexpected: ${cause.message}`
         }
-        return 'Error'
+        return 'Unable to complete the request'
       },
     },
   })
@@ -84,17 +49,29 @@ test('resolveMessage prop handles network and unexpected errors dynamically', ()
   expect(mapError(new Error('unexpected error')).message).toBe('Unexpected: unexpected error')
 })
 
-test('statusMessages prop takes precedence and works with low-level constructors', () => {
+test('titles are resolved separately from low-level error messages', () => {
   const options: ApiErrorOptions = {
     i18n: {
-      messages: { 'not-found': 'foo' },
-      statusMessages: { 404: 'bar' },
+      titles: { 'not-found': 'Not here' },
+      statusTitles: { 404: 'Missing' },
+      messages: { 'not-found': 'The requested item does not exist.' },
     },
   }
   const error = ApiError.getHttpResponseError(404, undefined, undefined, options)
+  expect(error.message).toBe('The requested item does not exist.')
 
-  expect(error.message).toBe('bar')
-  expect(mapApiError(error, options).message).toBe('bar')
+  const mapped = mapApiError(error, options)
+  expect(mapped.title).toBe('Missing')
+  expect(mapped.message).toBe('The requested item does not exist.')
+})
+
+test('resolveTitle prop may intentionally return an empty title', () => {
+  const options: ApiErrorOptions = {
+    i18n: { resolveTitle: () => '' },
+  }
+  const error = ApiError.getUnexpectedError(new Error('unexpected error'))
+
+  expect(mapApiError(error, options).title).toBe('')
 })
 
 test('resolveMessage prop may intentionally return an empty message', () => {
@@ -127,11 +104,96 @@ test('backend messages are exposed separately and are not shown by default', () 
   expect(mapped.details.rawMessage).toBe('Internal backend details')
 })
 
-test('HTTP messages fall back by status, server family, status text, then kind', () => {
+test('HTTP titles fall back by status, server family, status text, then kind', () => {
   const mapResponseError = createFetchResponseErrorMapper()
 
-  expect(mapResponseError({ status: 404 }).message).toBe('Not found')
-  expect(mapResponseError({ status: 599 }).message).toBe('Server error')
-  expect(mapResponseError({ status: 418, statusText: "I'm a Teapot" }).message).toBe("I'm a Teapot")
-  expect(mapResponseError({ status: 418 }).message).toBe('Business logic error')
+  expect(mapResponseError({ status: 404 }).title).toBe('Not found')
+  expect(mapResponseError({ status: 599 }).title).toBe('Server error')
+  expect(mapResponseError({ status: 418, statusText: "I'm a Teapot" }).title).toBe("I'm a Teapot")
+  expect(mapResponseError({ status: 418 }).title).toBe('Request failed')
+})
+
+test('mapped errors expose independent built-in titles and messages', () => {
+  const mapResponseError = createFetchResponseErrorMapper()
+  const mapped = mapResponseError({ status: 404 })
+
+  expect(mapped.title).toBe('Not found')
+  expect(mapped.message).toBe('Requested resource was not found')
+  expect(mapped.details.statusCode).toBe(404)
+})
+
+test('maps configured titles, status titles, and messages', () => {
+  const options: ApiErrorOptions = {
+    i18n: {
+      titles: TITLES,
+      statusTitles: {
+        503: 'Temporarily unavailable',
+        504: 'Request timed out',
+      },
+      messages: MESSAGES
+    },
+  }
+
+  const mapResponseError = createFetchResponseErrorMapper(options)
+
+  for (const [status, title, message] of HTTP_CASES) {
+    expect(mapResponseError({ status })).toMatchObject({
+      title,
+      message,
+      details: { statusCode: status },
+    })
+  }
+
+  expect(mapApiError(ApiError.getNetworkError(new TypeError(), options), options))
+    .toMatchObject({
+      title: 'Connection problem',
+      message: 'Check your internet connection and try again.',
+    })
+
+  expect(mapApiError(ApiError.getUnexpectedError(new Error(), options), options))
+    .toMatchObject({
+      title: 'Something went wrong',
+      message: 'An unexpected error occurred. Please try again.',
+    })
+})
+
+test('maps titles and messages with resolvers', () => {
+  const options: ApiErrorOptions = {
+    i18n: {
+      resolveTitle: ({ kind, statusCode }) => {
+        if (statusCode === 503) {
+          return 'Temporarily unavailable'
+        }
+        if (statusCode === 504) {
+          return 'Request timed out'
+        }
+        return TITLES[kind]
+      },
+      resolveMessage: ({ kind }) => {
+        return MESSAGES[kind]
+      },
+    },
+  }
+
+  const mapResponseError = createFetchResponseErrorMapper(options)
+
+  for (const [status, title, message] of HTTP_CASES) {
+    expect(mapResponseError({ status })).toMatchObject({
+      title,
+      message,
+      details: { statusCode: status },
+    })
+  }
+
+  expect(mapApiError(ApiError.getNetworkError(new TypeError()), options))
+    .toMatchObject({
+      title: 'Connection problem',
+      message: 'Check your internet connection and try again.',
+    })
+
+  expect(mapApiError(ApiError.getUnexpectedError(new Error()), options))
+    .toMatchObject({
+      title: 'Something went wrong',
+      message: 'An unexpected error occurred. Please try again.',
+    })
 })

@@ -1,6 +1,20 @@
 import type { STATUS_CODE } from '../../constants'
 import type { ApiErrorKind } from '../../types/api'
 
+export const EN_API_ERROR_TITLE = {
+  network: 'Connection problem',
+  abort: 'Request cancelled',
+  unauthorized: 'Authentication required',
+  forbidden: 'Access denied',
+  'not-found': 'Not found',
+  validation: 'Check the form',
+  conflict: 'Conflict',
+  'rate-limited': 'Too many requests',
+  business: 'Request failed',
+  server: 'Server error',
+  unexpected: 'Something went wrong',
+} satisfies Record<ApiErrorKind, string>
+
 export const EN_API_ERROR_MESSAGE = {
   network: 'Network unavailable',
   abort: 'Request has been cancelled',
@@ -15,7 +29,7 @@ export const EN_API_ERROR_MESSAGE = {
   unexpected: 'Unexpected error occurred',
 } satisfies Record<ApiErrorKind, string>
 
-export const EN_HTTP_ERROR_MESSAGE: Partial<Record<number, string>> = {
+export const EN_HTTP_ERROR_TITLE: Partial<Record<number, string>> = {
   400: 'Bad request',
   401: 'Unauthorized',
   403: 'Forbidden',
