@@ -19,6 +19,7 @@ test('resolvers take precedence over configured titles and messages', () => {
       titles: { 'not-found': 'Resource not found' },
       statusTitles: { 404: 'Page not found' },
       messages: { 'not-found': 'The requested project could not be found.' },
+      statusMessages: { 404: 'The page is unavailable.' },
     },
   }
 
@@ -122,7 +123,7 @@ test('mapped errors expose independent built-in titles and messages', () => {
   expect(mapped.details.statusCode).toBe(404)
 })
 
-test('maps configured titles, status titles, and messages', () => {
+test('maps configured titles and messages by kind and status', () => {
   const options: ApiErrorOptions = {
     i18n: {
       titles: TITLES,
@@ -130,13 +131,19 @@ test('maps configured titles, status titles, and messages', () => {
         503: 'Temporarily unavailable',
         504: 'Request timed out',
       },
-      messages: MESSAGES
+      messages: MESSAGES,
+      statusMessages: {
+        503: 'The service is temporarily unavailable.',
+        504: 'The request took too long.',
+      },
     },
   }
 
   const mapResponseError = createFetchResponseErrorMapper(options)
 
-  for (const [status, title, message] of HTTP_CASES) {
+  for (const [status, title, defaultMessage] of HTTP_CASES) {
+    const message = options.i18n?.statusMessages?.[status] ?? defaultMessage
+
     expect(mapResponseError({ status })).toMatchObject({
       title,
       message,

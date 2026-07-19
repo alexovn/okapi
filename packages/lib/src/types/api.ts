@@ -37,6 +37,8 @@ export type ApiErrorStatusTitles = Partial<Record<number, string>>
 
 export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
 
+export type ApiErrorStatusMessages = Partial<Record<number, string>>
+
 export type ApiErrorMessageResolver = (error: ApiError) => string | undefined
 
 export type ApiErrorTitleResolver = (error: ApiError) => string | undefined
@@ -45,6 +47,7 @@ export interface ApiErrorI18nOptions {
   titles?: ApiErrorTitles
   statusTitles?: ApiErrorStatusTitles
   messages?: ApiErrorMessages
+  statusMessages?: ApiErrorStatusMessages
   resolveTitle?: ApiErrorTitleResolver
   resolveMessage?: ApiErrorMessageResolver
 }

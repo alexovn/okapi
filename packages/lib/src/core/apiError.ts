@@ -252,6 +252,14 @@ function getMappedApiErrorMessage(
     return resolvedMessage
   }
 
+  const statusMessage = error.statusCode !== undefined
+    ? options.i18n?.statusMessages?.[error.statusCode]
+    : undefined
+
+  if (statusMessage !== undefined) {
+    return statusMessage
+  }
+
   const customMessage = options.i18n?.messages?.[error.kind]
 
   if (customMessage !== undefined) {
