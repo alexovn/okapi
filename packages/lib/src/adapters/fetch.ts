@@ -6,25 +6,25 @@ export interface FetchResponseLike {
   statusText?: string
 }
 
-export type FetchResponseErrorMapper = (
+export type FetchResponseErrorMapper<TCustomKind extends string = never> = (
   response: FetchResponseLike,
   body?: unknown,
-) => MappedApiError
+) => MappedApiError<TCustomKind>
 
-export type FetchErrorMapper = (
+export type FetchErrorMapper<TCustomKind extends string = never> = (
   error: unknown,
   body?: unknown,
-) => MappedApiError
+) => MappedApiError<TCustomKind>
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-export function getFetchResponseError(
+export function getFetchResponseError<TCustomKind extends string = never>(
   response: FetchResponseLike,
   body?: unknown,
-  options?: ApiErrorAdapterOptions,
-): ApiError {
+  options?: ApiErrorAdapterOptions<TCustomKind>,
+): ApiError<TCustomKind> {
   return createApiErrorFromResponse({
     status: response.status,
     statusText: response.statusText,
@@ -32,11 +32,11 @@ export function getFetchResponseError(
   }, options)
 }
 
-export function getFetchError(
+export function getFetchError<TCustomKind extends string = never>(
   error: unknown,
   body?: unknown,
-  options?: ApiErrorAdapterOptions,
-): ApiError {
+  options?: ApiErrorAdapterOptions<TCustomKind>,
+): ApiError<TCustomKind> {
   if (isObject(error) && typeof error.status === 'number') {
     return getFetchResponseError(
       {
@@ -57,20 +57,20 @@ export function getFetchError(
   return normalizeApiError(error, options)
 }
 
-export function createFetchResponseErrorMapper(
-  options: ApiErrorAdapterOptions = {},
-): FetchResponseErrorMapper {
+export function createFetchResponseErrorMapper<TCustomKind extends string = never>(
+  options: ApiErrorAdapterOptions<TCustomKind> = {},
+): FetchResponseErrorMapper<TCustomKind> {
   return (response, body) => mapApiError(
-    getFetchResponseError(response, body),
+    getFetchResponseError(response, body, options),
     options,
   )
 }
 
-export function createFetchErrorMapper(
-  options: ApiErrorAdapterOptions = {},
-): FetchErrorMapper {
+export function createFetchErrorMapper<TCustomKind extends string = never>(
+  options: ApiErrorAdapterOptions<TCustomKind> = {},
+): FetchErrorMapper<TCustomKind> {
   return (error, body) => mapApiError(
-    getFetchError(error, body),
+    getFetchError(error, body, options),
     options,
   )
 }

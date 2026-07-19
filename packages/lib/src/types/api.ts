@@ -12,7 +12,11 @@ export interface ApiErrorResponse {
   errors?: ApiValidationErrors
 }
 
-export type ApiErrorKind = typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND]
+export type DefaultApiErrorKind = typeof API_ERROR_KIND[keyof typeof API_ERROR_KIND]
+
+export type ApiErrorKind<TCustomKind extends string = never> =
+  | DefaultApiErrorKind
+  | TCustomKind
 
 export type ApiErrorType = typeof API_ERROR_TYPE[keyof typeof API_ERROR_TYPE]
 
@@ -23,44 +27,63 @@ export type ApiErrorSource =
   | 'unexpected'
   | 'custom'
 
-export interface MappedApiError {
+export interface MappedApiError<TCustomKind extends string = never> {
   type: ApiErrorType
   title: string
   message: string
-  details: ApiError
+  details: ApiError<TCustomKind>
   errors?: ApiValidationErrors
 }
 
-export type ApiErrorTitles = Partial<Record<ApiErrorKind, string>>
+export type ApiErrorTitles<TCustomKind extends string = never> =
+  Partial<Record<ApiErrorKind<TCustomKind>, string>>
 
 export type ApiErrorStatusTitles = Partial<Record<number, string>>
 
-export type ApiErrorMessages = Partial<Record<ApiErrorKind, string>>
+export type ApiErrorMessages<TCustomKind extends string = never> =
+  Partial<Record<ApiErrorKind<TCustomKind>, string>>
 
 export type ApiErrorStatusMessages = Partial<Record<number, string>>
 
-export type ApiErrorMessageResolver = (error: ApiError) => string | undefined
+export type ApiErrorMessageResolver<TCustomKind extends string = never> =
+  (error: ApiError<TCustomKind>) => string | undefined
 
-export type ApiErrorTitleResolver = (error: ApiError) => string | undefined
+export type ApiErrorTitleResolver<TCustomKind extends string = never> =
+  (error: ApiError<TCustomKind>) => string | undefined
 
-export interface ApiErrorI18nOptions {
-  titles?: ApiErrorTitles
+export interface ApiErrorI18nOptions<TCustomKind extends string = never> {
+  titles?: ApiErrorTitles<TCustomKind>
   statusTitles?: ApiErrorStatusTitles
-  messages?: ApiErrorMessages
+  messages?: ApiErrorMessages<TCustomKind>
   statusMessages?: ApiErrorStatusMessages
-  resolveTitle?: ApiErrorTitleResolver
-  resolveMessage?: ApiErrorMessageResolver
+  resolveTitle?: ApiErrorTitleResolver<TCustomKind>
+  resolveMessage?: ApiErrorMessageResolver<TCustomKind>
 }
 
-export interface ApiErrorOptions {
-  i18n?: ApiErrorI18nOptions
+export interface ApiErrorKindContext {
+  source: ApiErrorSource
+  statusCode?: number
+  statusText?: string
+  raw?: unknown
+  cause?: unknown
 }
 
-export interface MapApiErrorOptions extends ApiErrorOptions {}
+export type ApiErrorKindResolver<TCustomKind extends string = never> =
+  (context: ApiErrorKindContext) => ApiErrorKind<TCustomKind> | undefined
 
-export interface ApiErrorAdapterOptions extends ApiErrorOptions {}
+export interface ApiErrorOptions<TCustomKind extends string = never> {
+  i18n?: ApiErrorI18nOptions<TCustomKind>
+  resolveKind?: ApiErrorKindResolver<TCustomKind>
+}
 
-export type ApiErrorMapper = (error: unknown) => MappedApiError
+export interface MapApiErrorOptions<TCustomKind extends string = never>
+  extends ApiErrorOptions<TCustomKind> {}
+
+export interface ApiErrorAdapterOptions<TCustomKind extends string = never>
+  extends ApiErrorOptions<TCustomKind> {}
+
+export type ApiErrorMapper<TCustomKind extends string = never> =
+  (error: unknown) => MappedApiError<TCustomKind>
 
 export interface ApiErrorResponseLike {
   status: number
@@ -68,8 +91,8 @@ export interface ApiErrorResponseLike {
   body?: unknown
 }
 
-export interface ApiErrorParams {
-  kind: ApiErrorKind
+export interface ApiErrorParams<TCustomKind extends string = never> {
+  kind: ApiErrorKind<TCustomKind>
   message: string
   /** Identifies which normalization path produced the error. */
   source?: ApiErrorSource

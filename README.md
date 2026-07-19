@@ -182,3 +182,52 @@ Message resolution order:
 2) `i18n.statusMessages[statusCode]`
 3) `i18n.messages[kind]`
 4) built-in message
+
+## Custom Error Kinds
+
+Applications can extend the built-in kinds with a string union. Pass that union
+as the generic argument to options, errors, or mapper factories that need to
+know about the custom kinds.
+
+```ts
+type AppErrorKind =
+  | 'project-archived'
+  | 'subscription-expired'
+
+const options: ApiErrorAdapterOptions<AppErrorKind> = {
+  resolveKind: ({ statusCode, raw }) => {
+    if (
+      statusCode === 404
+      && typeof raw === 'object'
+      && raw !== null
+      && 'code' in raw
+      && raw.code === 'PROJECT_ARCHIVED'
+    ) {
+      return 'project-archived'
+    }
+
+    return undefined
+  },
+  i18n: {
+    titles: {
+      'project-archived': 'Project archived',
+    },
+    messages: {
+      'project-archived': 'Restore the project to continue.',
+    },
+  },
+}
+
+const mapResponseError = createFetchResponseErrorMapper(options)
+```
+
+`resolveKind` runs before built-in classification and receives the error `source`, `statusCode`, `statusText`, `raw` value, and `cause`. Return `undefined` to use the built-in classifier. Custom kinds map to the broad `business` error type by default.
+
+Custom errors can also be constructed directly:
+
+```ts
+const error = new ApiError<AppErrorKind>({
+  kind: 'project-archived',
+  message: 'This project has been archived.',
+})
+```

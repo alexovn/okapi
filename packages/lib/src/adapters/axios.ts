@@ -5,10 +5,10 @@ import type { ApiErrorAdapterOptions, ApiErrorMapper } from '../types/api'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 
-export function getAxiosError(
+export function getAxiosError<TCustomKind extends string = never>(
   error: unknown,
-  options?: ApiErrorAdapterOptions,
-): ApiError {
+  options?: ApiErrorAdapterOptions<TCustomKind>,
+): ApiError<TCustomKind> {
   if (!isAxiosError(error)) {
     return normalizeApiError(error, options)
   }
@@ -24,8 +24,8 @@ export function getAxiosError(
   return ApiError.getNetworkError(error, options)
 }
 
-export function createAxiosErrorMapper(
-  options: ApiErrorAdapterOptions = {},
-): ApiErrorMapper {
-  return error => mapApiError(getAxiosError(error), options)
+export function createAxiosErrorMapper<TCustomKind extends string = never>(
+  options: ApiErrorAdapterOptions<TCustomKind> = {},
+): ApiErrorMapper<TCustomKind> {
+  return error => mapApiError(getAxiosError(error, options), options)
 }

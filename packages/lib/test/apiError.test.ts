@@ -1,15 +1,94 @@
-import { expect, test } from 'vitest'
+import { expect, expectTypeOf, test } from 'vitest'
 
 import {
   ApiError,
   createFetchErrorMapper,
   createFetchResponseErrorMapper,
   mapApiError,
+  normalizeApiError,
 } from '../src'
 
 import { TITLES, MESSAGES, HTTP_CASES } from './constants'
 
-import type { ApiErrorOptions } from '../src'
+import type {
+  ApiErrorAdapterOptions,
+  ApiErrorKind,
+  ApiErrorOptions,
+  DefaultApiErrorKind,
+  MappedApiError,
+} from '../src'
+
+test('error kind type can include consumer-defined kinds', () => {
+  type AppErrorKind = ApiErrorKind<'project-archived'>
+
+  expectTypeOf<'project-archived'>().toExtend<AppErrorKind>()
+  expectTypeOf<DefaultApiErrorKind>().toExtend<AppErrorKind>()
+})
+
+test('consumers can construct an ApiError with a custom kind', () => {
+  type AppErrorKind = 'project-archived'
+
+  const error = new ApiError<AppErrorKind>({
+    kind: 'project-archived',
+    message: 'This project has been archived.',
+  })
+
+  expectTypeOf(error.kind).toEqualTypeOf<ApiErrorKind<AppErrorKind>>()
+  expectTypeOf(normalizeApiError(error)).toEqualTypeOf<ApiError<AppErrorKind>>()
+  expectTypeOf(mapApiError(error)).toEqualTypeOf<MappedApiError<AppErrorKind>>()
+  expect(error.kind).toBe('project-archived')
+  expect(error.message).toBe('This project has been archived.')
+})
+
+test('adapters classify and translate consumer-defined error kinds', () => {
+  type AppErrorKind = 'project-archived' | 'subscription-expired'
+
+  const options: ApiErrorAdapterOptions<AppErrorKind> = {
+    resolveKind: ({ source, statusCode, raw }) => {
+      if (
+        source === 'api'
+        && statusCode === 404
+        && typeof raw === 'object'
+        && raw !== null
+        && 'code' in raw
+        && raw.code === 'PROJECT_ARCHIVED'
+      ) {
+        return 'project-archived'
+      }
+      return undefined
+    },
+    i18n: {
+      titles: { 'project-archived': 'Project archived' },
+      messages: {
+        'project-archived': 'Restore the project to continue.',
+      },
+    },
+  }
+  const mapResponseError = createFetchResponseErrorMapper(options)
+  const mapped = mapResponseError(
+    { status: 404, statusText: 'Not Found' },
+    { message: 'Internal backend details', code: 'PROJECT_ARCHIVED' },
+  )
+
+  expectTypeOf(mapped).toEqualTypeOf<MappedApiError<AppErrorKind>>()
+  expect(mapped).toMatchObject({
+    type: 'business',
+    title: 'Project archived',
+    message: 'Restore the project to continue.',
+    details: {
+      kind: 'project-archived',
+      statusCode: 404,
+    },
+  })
+})
+
+test('custom kind resolution falls back to built-in classification', () => {
+  const mapResponseError = createFetchResponseErrorMapper<'project-archived'>({
+    resolveKind: () => undefined,
+  })
+
+  expect(mapResponseError({ status: 404 }).details.kind).toBe('not-found')
+})
 
 test('resolvers take precedence over configured titles and messages', () => {
   const options: ApiErrorOptions = {

@@ -8,6 +8,8 @@ import { STATUS_CODE } from '../constants/statusCode'
 import { API_ERROR_KIND, API_ERROR_TYPE } from '../constants/api'
 import type {
   ApiErrorKind,
+  DefaultApiErrorKind,
+  ApiErrorKindContext,
   ApiErrorParams,
   ApiErrorOptions,
   ApiErrorResponseLike,
@@ -17,15 +19,15 @@ import type {
   ApiErrorSource,
 } from '../types/api'
 
-export class ApiError extends Error {
-  readonly kind: ApiErrorKind
+export class ApiError<TCustomKind extends string = never> extends Error {
+  readonly kind: ApiErrorKind<TCustomKind>
   readonly source: ApiErrorSource
   readonly statusCode?: number
   readonly statusText?: string
   readonly validationErrors?: ApiValidationErrors
   readonly raw?: unknown
 
-  constructor(params: ApiErrorParams) {
+  constructor(params: ApiErrorParams<TCustomKind>) {
     super(params.message, { cause: params.cause })
 
     this.name = 'ApiError'
@@ -51,17 +53,22 @@ export class ApiError extends Error {
     return this.kind === API_ERROR_KIND.VALIDATION
   }
 
-  static getApiResponseError(
+  static getApiResponseError<TCustomKind extends string = never>(
     raw: ApiErrorResponse,
     statusCode?: number,
     statusText?: string,
-  ): ApiError {
-    const kind = getKindFromStatus(statusCode, raw)
+    options: ApiErrorOptions<TCustomKind> = {},
+  ): ApiError<TCustomKind> {
+    const kind = resolveApiErrorKind(
+      { source: 'api', statusCode, statusText, raw },
+      options,
+      () => getKindFromStatus(statusCode, raw),
+    )
 
-    return new ApiError({
+    return new ApiError<TCustomKind>({
       kind,
       source: 'api',
-      message: EN_API_ERROR_MESSAGE[kind],
+      message: getApiErrorMessageForKind(kind, options),
       statusCode,
       statusText,
       validationErrors: raw.errors,
@@ -69,33 +76,42 @@ export class ApiError extends Error {
     })
   }
 
-  static getHttpResponseError(
+  static getHttpResponseError<TCustomKind extends string = never>(
     statusCode: number,
     statusText?: string,
     raw?: unknown,
-    options: ApiErrorOptions = {},
-  ): ApiError {
-    const kind = getKindFromStatus(statusCode)
+    options: ApiErrorOptions<TCustomKind> = {},
+  ): ApiError<TCustomKind> {
+    const kind = resolveApiErrorKind(
+      { source: 'http', statusCode, statusText, raw },
+      options,
+      () => getKindFromStatus(statusCode),
+    )
 
-    return new ApiError({
+    return new ApiError<TCustomKind>({
       kind,
       source: 'http',
-      message: options.i18n?.messages?.[kind] ?? EN_API_ERROR_MESSAGE[kind],
+      message: getApiErrorMessageForKind(kind, options),
       statusCode,
       statusText,
       raw,
     })
   }
 
-  static getNetworkError(
+  static getNetworkError<TCustomKind extends string = never>(
     error: unknown,
-    options: ApiErrorOptions = {},
-  ): ApiError {
-    const kind = isAbortError(error)
+    options: ApiErrorOptions<TCustomKind> = {},
+  ): ApiError<TCustomKind> {
+    const defaultKind = isAbortError(error)
       ? API_ERROR_KIND.ABORT
       : API_ERROR_KIND.NETWORK
+    const kind = resolveApiErrorKind(
+      { source: 'network', cause: error },
+      options,
+      () => defaultKind,
+    )
 
-    return new ApiError({
+    return new ApiError<TCustomKind>({
       kind,
       source: 'network',
       message: getApiErrorMessageForKind(kind, options),
@@ -103,14 +119,20 @@ export class ApiError extends Error {
     })
   }
 
-  static getUnexpectedError(
+  static getUnexpectedError<TCustomKind extends string = never>(
     error: unknown,
-    options: ApiErrorOptions = {},
-  ): ApiError {
-    return new ApiError({
-      kind: API_ERROR_KIND.UNEXPECTED,
+    options: ApiErrorOptions<TCustomKind> = {},
+  ): ApiError<TCustomKind> {
+    const kind = resolveApiErrorKind(
+      { source: 'unexpected', cause: error },
+      options,
+      () => API_ERROR_KIND.UNEXPECTED,
+    )
+
+    return new ApiError<TCustomKind>({
+      kind,
       source: 'unexpected',
-      message: getApiErrorMessageForKind(API_ERROR_KIND.UNEXPECTED, options),
+      message: getApiErrorMessageForKind(kind, options),
       cause: error,
     })
   }
@@ -132,15 +154,16 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   return true
 }
 
-export function createApiErrorFromResponse(
+export function createApiErrorFromResponse<TCustomKind extends string = never>(
   response: ApiErrorResponseLike,
-  options: ApiErrorOptions = {},
-): ApiError {
+  options: ApiErrorOptions<TCustomKind> = {},
+): ApiError<TCustomKind> {
   if (isApiErrorResponse(response.body)) {
     return ApiError.getApiResponseError(
       response.body,
       response.status,
       response.statusText,
+      options,
     )
   }
 
@@ -152,12 +175,20 @@ export function createApiErrorFromResponse(
   )
 }
 
+export function mapApiError<TCustomKind extends string>(
+  error: ApiError<TCustomKind>,
+  options?: MapApiErrorOptions<TCustomKind>,
+): MappedApiError<TCustomKind>
+export function mapApiError<TCustomKind extends string = never>(
+  error: unknown,
+  options?: MapApiErrorOptions<TCustomKind>,
+): MappedApiError<TCustomKind>
 export function mapApiError(
   error: unknown,
-  options: MapApiErrorOptions = {},
-): MappedApiError {
+  options: MapApiErrorOptions<string> = {},
+): MappedApiError<string> {
   const apiError = normalizeApiError(error, options)
-  const mappedError: MappedApiError = {
+  const mappedError: MappedApiError<string> = {
     type: getApiErrorType(apiError),
     title: getMappedApiErrorTitle(apiError, options),
     message: getMappedApiErrorMessage(apiError, options),
@@ -171,10 +202,18 @@ export function mapApiError(
   return mappedError
 }
 
+export function normalizeApiError<TCustomKind extends string>(
+  error: ApiError<TCustomKind>,
+  options?: ApiErrorOptions<TCustomKind>,
+): ApiError<TCustomKind>
+export function normalizeApiError<TCustomKind extends string = never>(
+  error: unknown,
+  options?: ApiErrorOptions<TCustomKind>,
+): ApiError<TCustomKind>
 export function normalizeApiError(
   error: unknown,
-  options: ApiErrorOptions = {},
-): ApiError {
+  options: ApiErrorOptions<string> = {},
+): ApiError<string> {
   if (error instanceof ApiError) {
     return error
   }
@@ -186,7 +225,9 @@ export function normalizeApiError(
   return ApiError.getUnexpectedError(error, options)
 }
 
-function getApiErrorType(error: ApiError): ApiErrorType {
+function getApiErrorType<TCustomKind extends string>(
+  error: ApiError<TCustomKind>,
+): ApiErrorType {
   switch (error.kind) {
     case API_ERROR_KIND.NETWORK:
     case API_ERROR_KIND.ABORT:
@@ -201,22 +242,18 @@ function getApiErrorType(error: ApiError): ApiErrorType {
     case API_ERROR_KIND.SERVER:
       return API_ERROR_TYPE.SERVER
 
-    case API_ERROR_KIND.FORBIDDEN:
-    case API_ERROR_KIND.NOT_FOUND:
-    case API_ERROR_KIND.CONFLICT:
-    case API_ERROR_KIND.RATE_LIMITED:
-    case API_ERROR_KIND.BUSINESS:
-      return API_ERROR_TYPE.BUSINESS
+    case API_ERROR_KIND.UNEXPECTED:
+      return API_ERROR_TYPE.UNEXPECTED
 
     default:
-      return API_ERROR_TYPE.UNEXPECTED
+      return API_ERROR_TYPE.BUSINESS
   }
 }
 
 function getKindFromStatus(
   statusCode?: number,
   raw?: ApiErrorResponse,
-): ApiErrorKind {
+): DefaultApiErrorKind {
   if (statusCode === STATUS_CODE.UNAUTHORIZED) {
     return API_ERROR_KIND.UNAUTHORIZED
   }
@@ -242,9 +279,9 @@ function getKindFromStatus(
   return API_ERROR_KIND.BUSINESS
 }
 
-function getMappedApiErrorMessage(
-  error: ApiError,
-  options: MapApiErrorOptions,
+function getMappedApiErrorMessage<TCustomKind extends string>(
+  error: ApiError<TCustomKind>,
+  options: MapApiErrorOptions<TCustomKind>,
 ): string {
   const resolvedMessage = options.i18n?.resolveMessage?.(error)
 
@@ -269,9 +306,9 @@ function getMappedApiErrorMessage(
   return error.message
 }
 
-function getMappedApiErrorTitle(
-  error: ApiError,
-  options: MapApiErrorOptions,
+function getMappedApiErrorTitle<TCustomKind extends string>(
+  error: ApiError<TCustomKind>,
+  options: MapApiErrorOptions<TCustomKind>,
 ): string {
   const resolvedTitle = options.i18n?.resolveTitle?.(error)
 
@@ -294,16 +331,42 @@ function getMappedApiErrorTitle(
   }
 
   return getDefaultHttpTitle(error.statusCode, error.statusText)
-    ?? EN_API_ERROR_TITLE[error.kind]
+    ?? getApiErrorTitleForKind(error.kind)
 }
 
-function getApiErrorMessageForKind(
-  kind: ApiErrorKind,
-  options: ApiErrorOptions,
+function getApiErrorTitleForKind<TCustomKind extends string>(
+  kind: ApiErrorKind<TCustomKind>,
+): string {
+  return isBuiltInApiErrorKind(kind)
+    ? EN_API_ERROR_TITLE[kind]
+    : EN_API_ERROR_TITLE[API_ERROR_KIND.BUSINESS]
+}
+
+function getApiErrorMessageForKind<TCustomKind extends string>(
+  kind: ApiErrorKind<TCustomKind>,
+  options: ApiErrorOptions<TCustomKind>,
 ): string {
   const customMessage = options.i18n?.messages?.[kind]
 
-  return customMessage ?? EN_API_ERROR_MESSAGE[kind]
+  if (customMessage !== undefined) {
+    return customMessage
+  }
+
+  return isBuiltInApiErrorKind(kind)
+    ? EN_API_ERROR_MESSAGE[kind]
+    : EN_API_ERROR_MESSAGE[API_ERROR_KIND.BUSINESS]
+}
+
+function resolveApiErrorKind<TCustomKind extends string>(
+  context: ApiErrorKindContext,
+  options: ApiErrorOptions<TCustomKind>,
+  getFallback: () => DefaultApiErrorKind,
+): ApiErrorKind<TCustomKind> {
+  return options.resolveKind?.(context) ?? getFallback()
+}
+
+function isBuiltInApiErrorKind(kind: string): kind is DefaultApiErrorKind {
+  return Object.values(API_ERROR_KIND).some(value => value === kind)
 }
 
 function getDefaultHttpTitle(
