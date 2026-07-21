@@ -1,21 +1,27 @@
 import { $fetch, type FetchOptions } from 'ofetch'
 import { createOfetchErrorMapper } from '@alexovn/okapi'
+import { useI18n } from 'vue-i18n'
 
-const mapOfetchError = createOfetchErrorMapper({
-  i18n: {
-    resolveMessage: ({ kind, statusCode }) => {
-      return statusCode ? `HTTP error ${statusCode}` : `API error: ${kind}`
+export function useOfetch() {
+  const { t } = useI18n()
+
+  const mapOfetchError = createOfetchErrorMapper({
+    i18n: {
+      resolveTitle: ({ kind }) => t(`error.api.title.${kind}`),
+      resolveMessage: ({ kind }) => t(`error.api.messages.${kind}`),
     },
-  },
-})
+  })
 
-export async function ofetchGet<T>(
-  url: string,
-  options?: FetchOptions<'json'>,
-): Promise<T> {
-  try {
-    return await $fetch<T>(url, options)
-  } catch (error) {
-    throw mapOfetchError(error)
+  async function ofetchGet<T>(
+    url: string,
+    options?: FetchOptions<'json'>,
+  ): Promise<T> {
+    try {
+      return await $fetch<T>(url, options)
+    } catch (error) {
+      throw mapOfetchError(error)
+    }
   }
+
+  return { ofetchGet }
 }
