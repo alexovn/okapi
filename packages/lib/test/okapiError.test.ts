@@ -33,7 +33,7 @@ test('consumers can construct an OkapiError with a custom kind', () => {
 
   expectTypeOf(error.kind).toEqualTypeOf<OkapiErrorKind<AppErrorKind>>()
   expectTypeOf(normalizeOkapiError(error)).toEqualTypeOf<OkapiError<AppErrorKind>>()
-  expectTypeOf(mapOkapiError(error)).toEqualTypeOf<MappedOkapiError<AppErrorKind>>()
+  expectTypeOf(mapOkapiError<AppErrorKind>(error)).toEqualTypeOf<MappedOkapiError<AppErrorKind>>()
   expect(error.name).toBe('OkapiError')
   expect(error.kind).toBe('project-archived')
   expect(error.message).toBe('This project has been archived.')

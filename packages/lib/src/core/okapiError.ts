@@ -174,20 +174,12 @@ export function createApiErrorFromResponse<TCustomKind extends string = never>(
   )
 }
 
-export function mapOkapiError<TCustomKind extends string>(
-  error: OkapiError<TCustomKind>,
-  options?: MapOkapiErrorOptions<TCustomKind>,
-): MappedOkapiError<TCustomKind>
 export function mapOkapiError<TCustomKind extends string = never>(
   error: unknown,
-  options?: MapOkapiErrorOptions<TCustomKind>,
-): MappedOkapiError<TCustomKind>
-export function mapOkapiError(
-  error: unknown,
-  options: MapOkapiErrorOptions<string> = {},
-): MappedOkapiError<string> {
+  options: MapOkapiErrorOptions<TCustomKind> = {},
+): MappedOkapiError<TCustomKind> {
   const okapiError = normalizeOkapiError(error, options)
-  const mappedError: MappedOkapiError<string> = {
+  const mappedError: MappedOkapiError<TCustomKind> = {
     type: getOkapiErrorType(okapiError),
     title: getMappedOkapiErrorTitle(okapiError, options),
     message: getMappedOkapiErrorMessage(okapiError, options),
