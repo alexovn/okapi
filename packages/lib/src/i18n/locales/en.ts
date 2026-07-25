@@ -41,4 +41,4 @@ export const EN_HTTP_ERROR_TITLE: Partial<Record<number, string>> = {
   502: 'Bad gateway',
   503: 'Service unavailable',
   504: 'Gateway timeout',
-} satisfies Record<typeof STATUS_CODE[keyof typeof STATUS_CODE], string>
+} satisfies Record<(typeof STATUS_CODE)[keyof typeof STATUS_CODE], string>

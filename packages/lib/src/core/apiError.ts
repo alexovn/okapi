@@ -1,11 +1,7 @@
-import type { ApiErrorResponse, ApiValidationErrors } from '../types/api'
-import {
-  EN_API_ERROR_MESSAGE,
-  EN_API_ERROR_TITLE,
-  EN_HTTP_ERROR_TITLE,
-} from '../i18n/locales/en'
-import { STATUS_CODE } from '../constants/statusCode'
 import { API_ERROR_KIND, API_ERROR_TYPE } from '../constants/api'
+import { STATUS_CODE } from '../constants/statusCode'
+import { EN_API_ERROR_MESSAGE, EN_API_ERROR_TITLE, EN_HTTP_ERROR_TITLE } from '../i18n/locales/en'
+import type { ApiErrorResponse, ApiValidationErrors } from '../types/api'
 import type {
   ApiErrorKind,
   DefaultApiErrorKind,
@@ -59,10 +55,8 @@ export class ApiError<TCustomKind extends string = never> extends Error {
     statusText?: string,
     options: ApiErrorOptions<TCustomKind> = {},
   ): ApiError<TCustomKind> {
-    const kind = resolveApiErrorKind(
-      { source: 'api', statusCode, statusText, raw },
-      options,
-      () => getKindFromStatus(statusCode, raw),
+    const kind = resolveApiErrorKind({ source: 'api', statusCode, statusText, raw }, options, () =>
+      getKindFromStatus(statusCode, raw),
     )
 
     return new ApiError<TCustomKind>({
@@ -82,10 +76,8 @@ export class ApiError<TCustomKind extends string = never> extends Error {
     raw?: unknown,
     options: ApiErrorOptions<TCustomKind> = {},
   ): ApiError<TCustomKind> {
-    const kind = resolveApiErrorKind(
-      { source: 'http', statusCode, statusText, raw },
-      options,
-      () => getKindFromStatus(statusCode),
+    const kind = resolveApiErrorKind({ source: 'http', statusCode, statusText, raw }, options, () =>
+      getKindFromStatus(statusCode),
     )
 
     return new ApiError<TCustomKind>({
@@ -102,9 +94,7 @@ export class ApiError<TCustomKind extends string = never> extends Error {
     error: unknown,
     options: ApiErrorOptions<TCustomKind> = {},
   ): ApiError<TCustomKind> {
-    const defaultKind = isAbortError(error)
-      ? API_ERROR_KIND.ABORT
-      : API_ERROR_KIND.NETWORK
+    const defaultKind = isAbortError(error) ? API_ERROR_KIND.ABORT : API_ERROR_KIND.NETWORK
     const kind = resolveApiErrorKind(
       { source: 'network', cause: error },
       options,
@@ -167,12 +157,7 @@ export function createApiErrorFromResponse<TCustomKind extends string = never>(
     )
   }
 
-  return ApiError.getHttpResponseError(
-    response.status,
-    response.statusText,
-    response.body,
-    options,
-  )
+  return ApiError.getHttpResponseError(response.status, response.statusText, response.body, options)
 }
 
 export function mapApiError<TCustomKind extends string>(
@@ -225,9 +210,7 @@ export function normalizeApiError(
   return ApiError.getUnexpectedError(error, options)
 }
 
-function getApiErrorType<TCustomKind extends string>(
-  error: ApiError<TCustomKind>,
-): ApiErrorType {
+function getApiErrorType<TCustomKind extends string>(error: ApiError<TCustomKind>): ApiErrorType {
   switch (error.kind) {
     case API_ERROR_KIND.NETWORK:
     case API_ERROR_KIND.ABORT:
@@ -250,10 +233,7 @@ function getApiErrorType<TCustomKind extends string>(
   }
 }
 
-function getKindFromStatus(
-  statusCode?: number,
-  raw?: ApiErrorResponse,
-): DefaultApiErrorKind {
+function getKindFromStatus(statusCode?: number, raw?: ApiErrorResponse): DefaultApiErrorKind {
   if (statusCode === STATUS_CODE.UNAUTHORIZED) {
     return API_ERROR_KIND.UNAUTHORIZED
   }
@@ -289,9 +269,8 @@ function getMappedApiErrorMessage<TCustomKind extends string>(
     return resolvedMessage
   }
 
-  const statusMessage = error.statusCode !== undefined
-    ? options.i18n?.statusMessages?.[error.statusCode]
-    : undefined
+  const statusMessage =
+    error.statusCode !== undefined ? options.i18n?.statusMessages?.[error.statusCode] : undefined
 
   if (statusMessage !== undefined) {
     return statusMessage
@@ -316,9 +295,8 @@ function getMappedApiErrorTitle<TCustomKind extends string>(
     return resolvedTitle
   }
 
-  const statusTitle = error.statusCode !== undefined
-    ? options.i18n?.statusTitles?.[error.statusCode]
-    : undefined
+  const statusTitle =
+    error.statusCode !== undefined ? options.i18n?.statusTitles?.[error.statusCode] : undefined
 
   if (statusTitle !== undefined) {
     return statusTitle
@@ -330,8 +308,9 @@ function getMappedApiErrorTitle<TCustomKind extends string>(
     return customTitle
   }
 
-  return getDefaultHttpTitle(error.statusCode, error.statusText)
-    ?? getApiErrorTitleForKind(error.kind)
+  return (
+    getDefaultHttpTitle(error.statusCode, error.statusText) ?? getApiErrorTitleForKind(error.kind)
+  )
 }
 
 function getApiErrorTitleForKind<TCustomKind extends string>(
@@ -366,24 +345,21 @@ function resolveApiErrorKind<TCustomKind extends string>(
 }
 
 function isBuiltInApiErrorKind(kind: string): kind is DefaultApiErrorKind {
-  return Object.values(API_ERROR_KIND).some(value => value === kind)
+  return Object.values(API_ERROR_KIND).some((value) => value === kind)
 }
 
-function getDefaultHttpTitle(
-  statusCode?: number,
-  statusText?: string,
-): string | undefined {
-  const defaultTitle = statusCode !== undefined
-    ? EN_HTTP_ERROR_TITLE[statusCode]
-    : undefined
+function getDefaultHttpTitle(statusCode?: number, statusText?: string): string | undefined {
+  const defaultTitle = statusCode !== undefined ? EN_HTTP_ERROR_TITLE[statusCode] : undefined
 
   if (defaultTitle !== undefined) {
     return defaultTitle
   }
 
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
-    return EN_HTTP_ERROR_TITLE[STATUS_CODE.INTERNAL_SERVER_ERROR]
-      ?? EN_API_ERROR_TITLE[API_ERROR_KIND.SERVER]
+    return (
+      EN_HTTP_ERROR_TITLE[STATUS_CODE.INTERNAL_SERVER_ERROR] ??
+      EN_API_ERROR_TITLE[API_ERROR_KIND.SERVER]
+    )
   }
 
   if (statusText) {
@@ -407,9 +383,6 @@ function isValidationErrors(value: unknown): value is ApiValidationErrors {
   }
 
   return Object.values(value).every((messages) => {
-    return (
-      Array.isArray(messages)
-      && messages.every(message => typeof message === 'string')
-    )
+    return Array.isArray(messages) && messages.every((message) => typeof message === 'string')
   })
 }

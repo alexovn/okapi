@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 import { useOfetch } from './utils/ofetch'
 
 const { availableLocales, locale } = useI18n()
@@ -17,7 +18,9 @@ async function fetchPost(options = { throwError: false }) {
   clearError()
 
   try {
-    const res = await ofetchGet<any>(`https://jsonplaceholder.typicode.com/posts/${options.throwError ? '101' : '1'}`)
+    const res = await ofetchGet<any>(
+      `https://jsonplaceholder.typicode.com/posts/${options.throwError ? '101' : '1'}`,
+    )
     post.value = res
   } catch (error) {
     errorInfo.value = error
@@ -29,12 +32,14 @@ async function fetchPost(options = { throwError: false }) {
 <template>
   <div class="wrapper">
     <label class="locale-switch">
-      <span>
-        Locale
-      </span>
+      <span> Locale </span>
 
       <select v-model="locale">
-        <option v-for="availableLocale in availableLocales" :key="availableLocale" :value="availableLocale">
+        <option
+          v-for="availableLocale in availableLocales"
+          :key="availableLocale"
+          :value="availableLocale"
+        >
           {{ availableLocale.toUpperCase() }}
         </option>
       </select>
@@ -44,12 +49,7 @@ async function fetchPost(options = { throwError: false }) {
       <button @click="fetchPost()">Fetch post</button>
       <button @click="fetchPost({ throwError: true })">Throw error</button>
 
-      <button
-        v-if="errorInfo"
-        @click="clearError"
-      >
-        Clear error
-      </button>
+      <button v-if="errorInfo" @click="clearError">Clear error</button>
     </div>
 
     <div class="content">

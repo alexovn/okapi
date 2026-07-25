@@ -7,9 +7,6 @@ import {
   mapApiError,
   normalizeApiError,
 } from '../src'
-
-import { TITLES, MESSAGES, HTTP_CASES } from './constants'
-
 import type {
   ApiErrorAdapterOptions,
   ApiErrorKind,
@@ -17,6 +14,7 @@ import type {
   DefaultApiErrorKind,
   MappedApiError,
 } from '../src'
+import { TITLES, MESSAGES, HTTP_CASES } from './constants'
 
 test('error kind type can include consumer-defined kinds', () => {
   type AppErrorKind = ApiErrorKind<'project-archived'>
@@ -46,12 +44,12 @@ test('adapters classify and translate consumer-defined error kinds', () => {
   const options: ApiErrorAdapterOptions<AppErrorKind> = {
     resolveKind: ({ source, statusCode, raw }) => {
       if (
-        source === 'api'
-        && statusCode === 404
-        && typeof raw === 'object'
-        && raw !== null
-        && 'code' in raw
-        && raw.code === 'PROJECT_ARCHIVED'
+        source === 'api' &&
+        statusCode === 404 &&
+        typeof raw === 'object' &&
+        raw !== null &&
+        'code' in raw &&
+        raw.code === 'PROJECT_ARCHIVED'
       ) {
         return 'project-archived'
       }
@@ -59,9 +57,7 @@ test('adapters classify and translate consumer-defined error kinds', () => {
     },
     i18n: {
       titles: { 'project-archived': 'Project archived' },
-      messages: {
-        'project-archived': 'Restore the project to continue.',
-      },
+      messages: { 'project-archived': 'Restore the project to continue.' },
     },
   }
   const mapResponseError = createFetchResponseErrorMapper(options)
@@ -75,10 +71,7 @@ test('adapters classify and translate consumer-defined error kinds', () => {
     type: 'business',
     title: 'Project archived',
     message: 'Restore the project to continue.',
-    details: {
-      kind: 'project-archived',
-      statusCode: 404,
-    },
+    details: { kind: 'project-archived', statusCode: 404 },
   })
 })
 
@@ -146,18 +139,14 @@ test('titles are resolved separately from low-level error messages', () => {
 })
 
 test('resolveTitle prop may intentionally return an empty title', () => {
-  const options: ApiErrorOptions = {
-    i18n: { resolveTitle: () => '' },
-  }
+  const options: ApiErrorOptions = { i18n: { resolveTitle: () => '' } }
   const error = ApiError.getUnexpectedError(new Error('unexpected error'))
 
   expect(mapApiError(error, options).title).toBe('')
 })
 
 test('resolveMessage prop may intentionally return an empty message', () => {
-  const options: ApiErrorOptions = {
-    i18n: { resolveMessage: () => '' },
-  }
+  const options: ApiErrorOptions = { i18n: { resolveMessage: () => '' } }
   const error = ApiError.getUnexpectedError(new Error('unexpected error'))
   const mapped = mapApiError(error, options)
 
@@ -230,17 +219,15 @@ test('maps configured titles and messages by kind and status', () => {
     })
   }
 
-  expect(mapApiError(ApiError.getNetworkError(new TypeError(), options), options))
-    .toMatchObject({
-      title: 'Connection problem',
-      message: 'Check your internet connection and try again.',
-    })
+  expect(mapApiError(ApiError.getNetworkError(new TypeError(), options), options)).toMatchObject({
+    title: 'Connection problem',
+    message: 'Check your internet connection and try again.',
+  })
 
-  expect(mapApiError(ApiError.getUnexpectedError(new Error(), options), options))
-    .toMatchObject({
-      title: 'Something went wrong',
-      message: 'An unexpected error occurred. Please try again.',
-    })
+  expect(mapApiError(ApiError.getUnexpectedError(new Error(), options), options)).toMatchObject({
+    title: 'Something went wrong',
+    message: 'An unexpected error occurred. Please try again.',
+  })
 })
 
 test('maps titles and messages with resolvers', () => {
@@ -271,15 +258,13 @@ test('maps titles and messages with resolvers', () => {
     })
   }
 
-  expect(mapApiError(ApiError.getNetworkError(new TypeError()), options))
-    .toMatchObject({
-      title: 'Connection problem',
-      message: 'Check your internet connection and try again.',
-    })
+  expect(mapApiError(ApiError.getNetworkError(new TypeError()), options)).toMatchObject({
+    title: 'Connection problem',
+    message: 'Check your internet connection and try again.',
+  })
 
-  expect(mapApiError(ApiError.getUnexpectedError(new Error()), options))
-    .toMatchObject({
-      title: 'Something went wrong',
-      message: 'An unexpected error occurred. Please try again.',
-    })
+  expect(mapApiError(ApiError.getUnexpectedError(new Error()), options)).toMatchObject({
+    title: 'Something went wrong',
+    message: 'An unexpected error occurred. Please try again.',
+  })
 })

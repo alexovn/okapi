@@ -1,11 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "vue", "vitest"],
-  "categories": {
-    "correctness": "error"
-  },
+  "categories": { "correctness": "error" },
   "rules": {},
-  "env": {
-    "builtin": true
-  }
+  "env": { "builtin": true }
 }

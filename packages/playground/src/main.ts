@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
+
 import App from './App.vue'
 
 const i18n = createI18n({
@@ -29,9 +30,9 @@ const i18n = createI18n({
             server: 'We could not complete your request. Please try again',
             network: 'Check your internet connection and try again',
             unexpected: 'An unexpected error occurred. Please try again',
-          }
-        }
-      }
+          },
+        },
+      },
     },
     es: {
       error: {
@@ -55,11 +56,11 @@ const i18n = createI18n({
             server: 'No hemos podido completar tu solicitud. Inténtalo de nuevo',
             network: 'Comprueba tu conexión a Internet e inténtalo de nuevo',
             unexpected: 'Se ha producido un error inesperado. Inténtalo de nuevo',
-          }
-        }
-      }
-    }
-  }
+          },
+        },
+      },
+    },
+  },
 })
 
 const app = createApp(App)

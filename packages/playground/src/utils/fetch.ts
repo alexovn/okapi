@@ -1,7 +1,4 @@
-import {
-  createFetchErrorMapper,
-  createFetchResponseErrorMapper,
-} from '@alexovn/okapi'
+import { createFetchErrorMapper, createFetchResponseErrorMapper } from '@alexovn/okapi'
 import { useI18n } from 'vue-i18n'
 
 export function useFetch() {
@@ -17,10 +14,7 @@ export function useFetch() {
   const mapFetchError = createFetchErrorMapper(options)
   const mapFetchResponseError = createFetchResponseErrorMapper(options)
 
-  async function fetchJson<T>(
-    url: string,
-    options: RequestInit,
-  ): Promise<T> {
+  async function fetchJson<T>(url: string, options: RequestInit): Promise<T> {
     let response: Response
 
     try {
@@ -33,13 +27,10 @@ export function useFetch() {
       throw mapFetchResponseError(response)
     }
 
-    return await response.json() as T
+    return (await response.json()) as T
   }
 
-  function fetchGet<T>(
-    url: string,
-    options: RequestInit = {},
-  ): Promise<T> {
+  function fetchGet<T>(url: string, options: RequestInit = {}): Promise<T> {
     return fetchJson<T>(url, options)
   }
 

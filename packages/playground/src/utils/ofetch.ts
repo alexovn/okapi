@@ -1,5 +1,5 @@
-import { $fetch, type FetchOptions } from 'ofetch'
 import { createOfetchErrorMapper } from '@alexovn/okapi'
+import { $fetch, type FetchOptions } from 'ofetch'
 import { useI18n } from 'vue-i18n'
 
 export function useOfetch() {
@@ -12,10 +12,7 @@ export function useOfetch() {
     },
   })
 
-  async function ofetchGet<T>(
-    url: string,
-    options?: FetchOptions<'json'>,
-  ): Promise<T> {
+  async function ofetchGet<T>(url: string, options?: FetchOptions<'json'>): Promise<T> {
     try {
       return await $fetch<T>(url, options)
     } catch (error) {

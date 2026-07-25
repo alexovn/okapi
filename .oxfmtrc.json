@@ -1,13 +1,15 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "printWidth": 120,
+  "printWidth": 100,
   "tabWidth": 2,
   "useTabs": false,
-  "semi": true,
+  "semi": false,
   "singleQuote": true,
   "trailingComma": "all",
   "bracketSpacing": true,
   "arrowParens": "always",
-  "vueIndentScriptAndStyle": true,
+  "sortImports": true,
+  "insertFinalNewline": true,
+  "endOfLine": "lf",
   "ignorePatterns": ["**/*.md", "**/package.json"]
 }

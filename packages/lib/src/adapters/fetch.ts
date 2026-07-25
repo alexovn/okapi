@@ -1,4 +1,9 @@
-import { ApiError, createApiErrorFromResponse, mapApiError, normalizeApiError } from '../core/apiError'
+import {
+  ApiError,
+  createApiErrorFromResponse,
+  mapApiError,
+  normalizeApiError,
+} from '../core/apiError'
 import type { ApiErrorAdapterOptions, MappedApiError } from '../types/api'
 
 export interface FetchResponseLike {
@@ -25,11 +30,10 @@ export function getFetchResponseError<TCustomKind extends string = never>(
   body?: unknown,
   options?: ApiErrorAdapterOptions<TCustomKind>,
 ): ApiError<TCustomKind> {
-  return createApiErrorFromResponse({
-    status: response.status,
-    statusText: response.statusText,
-    body,
-  }, options)
+  return createApiErrorFromResponse(
+    { status: response.status, statusText: response.statusText, body },
+    options,
+  )
 }
 
 export function getFetchError<TCustomKind extends string = never>(
@@ -41,9 +45,7 @@ export function getFetchError<TCustomKind extends string = never>(
     return getFetchResponseError(
       {
         status: error.status,
-        statusText: typeof error.statusText === 'string'
-          ? error.statusText
-          : undefined,
+        statusText: typeof error.statusText === 'string' ? error.statusText : undefined,
       },
       body ?? error.body,
       options,
@@ -60,17 +62,11 @@ export function getFetchError<TCustomKind extends string = never>(
 export function createFetchResponseErrorMapper<TCustomKind extends string = never>(
   options: ApiErrorAdapterOptions<TCustomKind> = {},
 ): FetchResponseErrorMapper<TCustomKind> {
-  return (response, body) => mapApiError(
-    getFetchResponseError(response, body, options),
-    options,
-  )
+  return (response, body) => mapApiError(getFetchResponseError(response, body, options), options)
 }
 
 export function createFetchErrorMapper<TCustomKind extends string = never>(
   options: ApiErrorAdapterOptions<TCustomKind> = {},
 ): FetchErrorMapper<TCustomKind> {
-  return (error, body) => mapApiError(
-    getFetchError(error, body, options),
-    options,
-  )
+  return (error, body) => mapApiError(getFetchError(error, body, options), options)
 }

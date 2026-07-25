@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+
 import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   root: 'src',
@@ -10,8 +11,5 @@ export default defineConfig({
       '@alexovn/okapi': fileURLToPath(new URL('../lib/src/index.ts', import.meta.url)),
     },
   },
-  build: {
-    outDir: '../dist',
-    emptyOutDir: true,
-  },
+  build: { outDir: '../dist', emptyOutDir: true },
 })
