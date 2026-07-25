@@ -1,4 +1,4 @@
-import { OKAPI_ERROR_KIND, OKAPI_ERROR_TYPE, OKAPI_ERROR_SOURCE } from '../constants/okapiError'
+import { OKAPI_ERROR_KIND, OKAPI_ERROR_TYPE, OKAPI_ERROR_SOURCE } from '../constants/main'
 import { STATUS_CODE } from '../constants/statusCode'
 import {
   EN_OKAPI_ERROR_MESSAGE,
@@ -18,7 +18,7 @@ import type {
   MapOkapiErrorOptions,
   MappedOkapiError,
   OkapiErrorType,
-} from '../types/api'
+} from '../types/main'
 
 export class OkapiError<TCustomKind extends string = never> extends Error {
   readonly kind: OkapiErrorKind<TCustomKind>

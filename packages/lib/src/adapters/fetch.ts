@@ -4,7 +4,7 @@ import {
   mapOkapiError,
   normalizeOkapiError,
 } from '../core/okapiError'
-import type { OkapiErrorAdapterOptions, MappedOkapiError } from '../types/api'
+import type { OkapiErrorAdapterOptions, MappedOkapiError } from '../types/main'
 
 export interface FetchResponseLike {
   status: number

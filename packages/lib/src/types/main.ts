@@ -1,4 +1,4 @@
-import { OKAPI_ERROR_KIND, OKAPI_ERROR_SOURCE, OKAPI_ERROR_TYPE } from '../constants/okapiError'
+import { OKAPI_ERROR_KIND, OKAPI_ERROR_SOURCE, OKAPI_ERROR_TYPE } from '../constants/main'
 import type { OkapiError } from '../core/okapiError'
 
 export type ApiValidationErrors = Record<string, string[]>

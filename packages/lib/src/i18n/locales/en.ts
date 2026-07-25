@@ -1,5 +1,5 @@
 import type { STATUS_CODE } from '../../constants'
-import type { OkapiErrorKind } from '../../types/api'
+import type { OkapiErrorKind } from '../../types/main'
 
 export const EN_OKAPI_ERROR_TITLE = {
   network: 'Connection problem',

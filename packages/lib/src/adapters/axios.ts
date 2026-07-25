@@ -7,7 +7,7 @@ import {
   mapOkapiError,
   normalizeOkapiError,
 } from '../core/okapiError'
-import type { OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/api'
+import type { OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/main'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 

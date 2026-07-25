@@ -1,2 +1,2 @@
-export * from './okapiError'
+export * from './main'
 export * from './statusCode'
