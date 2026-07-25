@@ -332,7 +332,7 @@ function getMappedOkapiErrorTitle<TCustomKind extends string>(
 function getOkapiErrorTitleForKind<TCustomKind extends string>(
   kind: OkapiErrorKind<TCustomKind>,
 ): string {
-  return isBuiltInOkapiErrorKind(kind)
+  return isDefaultOkapiErrorKind(kind)
     ? EN_OKAPI_ERROR_TITLE[kind]
     : EN_OKAPI_ERROR_TITLE[OKAPI_ERROR_KIND.BUSINESS]
 }
@@ -347,7 +347,7 @@ function getOkapiErrorMessageForKind<TCustomKind extends string>(
     return customMessage
   }
 
-  return isBuiltInOkapiErrorKind(kind)
+  return isDefaultOkapiErrorKind(kind)
     ? EN_OKAPI_ERROR_MESSAGE[kind]
     : EN_OKAPI_ERROR_MESSAGE[OKAPI_ERROR_KIND.BUSINESS]
 }
@@ -360,7 +360,7 @@ function resolveOkapiErrorKind<TCustomKind extends string>(
   return options.resolveKind?.(context) ?? getFallback()
 }
 
-function isBuiltInOkapiErrorKind(kind: string): kind is DefaultOkapiErrorKind {
+function isDefaultOkapiErrorKind(kind: string): kind is DefaultOkapiErrorKind {
   return Object.values(OKAPI_ERROR_KIND).some((value) => value === kind)
 }
 
