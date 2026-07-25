@@ -1,9 +1,9 @@
 import {
-  ApiError,
+  OkapiError,
   createApiErrorFromResponse,
   mapApiError,
   normalizeApiError,
-} from '../core/apiError'
+} from '../core/okapiError'
 import type { ApiErrorAdapterOptions, MappedApiError } from '../types/api'
 
 export interface FetchResponseLike {
@@ -29,7 +29,7 @@ export function getFetchResponseError<TCustomKind extends string = never>(
   response: FetchResponseLike,
   body?: unknown,
   options?: ApiErrorAdapterOptions<TCustomKind>,
-): ApiError<TCustomKind> {
+): OkapiError<TCustomKind> {
   return createApiErrorFromResponse(
     { status: response.status, statusText: response.statusText, body },
     options,
@@ -40,7 +40,7 @@ export function getFetchError<TCustomKind extends string = never>(
   error: unknown,
   body?: unknown,
   options?: ApiErrorAdapterOptions<TCustomKind>,
-): ApiError<TCustomKind> {
+): OkapiError<TCustomKind> {
   if (isObject(error) && typeof error.status === 'number') {
     return getFetchResponseError(
       {
@@ -53,7 +53,7 @@ export function getFetchError<TCustomKind extends string = never>(
   }
 
   if (error instanceof TypeError) {
-    return ApiError.getNetworkError(error, options)
+    return OkapiError.getNetworkError(error, options)
   }
 
   return normalizeApiError(error, options)

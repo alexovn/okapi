@@ -2,11 +2,11 @@ import { isAxiosError } from 'axios'
 import type { AxiosError } from 'axios'
 
 import {
-  ApiError,
+  OkapiError,
   createApiErrorFromResponse,
   mapApiError,
   normalizeApiError,
-} from '../core/apiError'
+} from '../core/okapiError'
 import type { ApiErrorAdapterOptions, ApiErrorMapper } from '../types/api'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
@@ -14,7 +14,7 @@ export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 export function getAxiosError<TCustomKind extends string = never>(
   error: unknown,
   options?: ApiErrorAdapterOptions<TCustomKind>,
-): ApiError<TCustomKind> {
+): OkapiError<TCustomKind> {
   if (!isAxiosError(error)) {
     return normalizeApiError(error, options)
   }
@@ -30,7 +30,7 @@ export function getAxiosError<TCustomKind extends string = never>(
     )
   }
 
-  return ApiError.getNetworkError(error, options)
+  return OkapiError.getNetworkError(error, options)
 }
 
 export function createAxiosErrorMapper<TCustomKind extends string = never>(

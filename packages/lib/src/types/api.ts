@@ -1,5 +1,5 @@
 import { API_ERROR_KIND, API_ERROR_SOURCE, API_ERROR_TYPE } from '../constants/api'
-import type { ApiError } from '../core/apiError'
+import type { OkapiError } from '../core/okapiError'
 
 export type ApiValidationErrors = Record<string, string[]>
 
@@ -24,7 +24,7 @@ export interface MappedApiError<TCustomKind extends string = never> {
   type: ApiErrorType
   title: string
   message: string
-  details: ApiError<TCustomKind>
+  details: OkapiError<TCustomKind>
   errors?: ApiValidationErrors
 }
 
@@ -41,11 +41,11 @@ export type ApiErrorMessages<TCustomKind extends string = never> = Partial<
 export type ApiErrorStatusMessages = Partial<Record<number, string>>
 
 export type ApiErrorMessageResolver<TCustomKind extends string = never> = (
-  error: ApiError<TCustomKind>,
+  error: OkapiError<TCustomKind>,
 ) => string | undefined
 
 export type ApiErrorTitleResolver<TCustomKind extends string = never> = (
-  error: ApiError<TCustomKind>,
+  error: OkapiError<TCustomKind>,
 ) => string | undefined
 
 export interface ApiErrorI18nOptions<TCustomKind extends string = never> {

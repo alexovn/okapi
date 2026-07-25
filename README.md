@@ -226,7 +226,7 @@ const mapResponseError = createFetchResponseErrorMapper(options)
 Custom errors can also be constructed directly:
 
 ```ts
-const error = new ApiError<AppErrorKind>({
+const error = new OkapiError<AppErrorKind>({
   kind: 'project-archived',
   message: 'This project has been archived.',
 })

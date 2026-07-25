@@ -16,7 +16,7 @@ import type {
   ApiErrorType,
 } from '../types/api'
 
-export class ApiError<TCustomKind extends string = never> extends Error {
+export class OkapiError<TCustomKind extends string = never> extends Error {
   readonly kind: ApiErrorKind<TCustomKind>
   readonly source: ApiErrorSource
   readonly statusCode?: number
@@ -27,7 +27,7 @@ export class ApiError<TCustomKind extends string = never> extends Error {
   constructor(params: ApiErrorParams<TCustomKind>) {
     super(params.message, { cause: params.cause })
 
-    this.name = 'ApiError'
+    this.name = 'OkapiError'
     this.kind = params.kind
     this.source = params.source ?? API_ERROR_SOURCE.CUSTOM
     this.statusCode = params.statusCode
@@ -55,14 +55,14 @@ export class ApiError<TCustomKind extends string = never> extends Error {
     statusCode?: number,
     statusText?: string,
     options: ApiErrorOptions<TCustomKind> = {},
-  ): ApiError<TCustomKind> {
+  ): OkapiError<TCustomKind> {
     const kind = resolveApiErrorKind(
       { source: API_ERROR_SOURCE.API, statusCode, statusText, raw },
       options,
       () => getKindFromStatus(statusCode, raw),
     )
 
-    return new ApiError<TCustomKind>({
+    return new OkapiError<TCustomKind>({
       kind,
       source: API_ERROR_SOURCE.API,
       message: getApiErrorMessageForKind(kind, options),
@@ -78,14 +78,14 @@ export class ApiError<TCustomKind extends string = never> extends Error {
     statusText?: string,
     raw?: unknown,
     options: ApiErrorOptions<TCustomKind> = {},
-  ): ApiError<TCustomKind> {
+  ): OkapiError<TCustomKind> {
     const kind = resolveApiErrorKind(
       { source: API_ERROR_SOURCE.HTTP, statusCode, statusText, raw },
       options,
       () => getKindFromStatus(statusCode),
     )
 
-    return new ApiError<TCustomKind>({
+    return new OkapiError<TCustomKind>({
       kind,
       source: API_ERROR_SOURCE.HTTP,
       message: getApiErrorMessageForKind(kind, options),
@@ -98,7 +98,7 @@ export class ApiError<TCustomKind extends string = never> extends Error {
   static getNetworkError<TCustomKind extends string = never>(
     error: unknown,
     options: ApiErrorOptions<TCustomKind> = {},
-  ): ApiError<TCustomKind> {
+  ): OkapiError<TCustomKind> {
     const defaultKind = isAbortError(error) ? API_ERROR_KIND.ABORT : API_ERROR_KIND.NETWORK
     const kind = resolveApiErrorKind(
       { source: API_ERROR_SOURCE.NETWORK, cause: error },
@@ -106,7 +106,7 @@ export class ApiError<TCustomKind extends string = never> extends Error {
       () => defaultKind,
     )
 
-    return new ApiError<TCustomKind>({
+    return new OkapiError<TCustomKind>({
       kind,
       source: API_ERROR_SOURCE.NETWORK,
       message: getApiErrorMessageForKind(kind, options),
@@ -117,14 +117,14 @@ export class ApiError<TCustomKind extends string = never> extends Error {
   static getUnexpectedError<TCustomKind extends string = never>(
     error: unknown,
     options: ApiErrorOptions<TCustomKind> = {},
-  ): ApiError<TCustomKind> {
+  ): OkapiError<TCustomKind> {
     const kind = resolveApiErrorKind(
       { source: API_ERROR_SOURCE.UNEXPECTED, cause: error },
       options,
       () => API_ERROR_KIND.UNEXPECTED,
     )
 
-    return new ApiError<TCustomKind>({
+    return new OkapiError<TCustomKind>({
       kind,
       source: API_ERROR_SOURCE.UNEXPECTED,
       message: getApiErrorMessageForKind(kind, options),
@@ -152,9 +152,9 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
 export function createApiErrorFromResponse<TCustomKind extends string = never>(
   response: ApiErrorResponseLike,
   options: ApiErrorOptions<TCustomKind> = {},
-): ApiError<TCustomKind> {
+): OkapiError<TCustomKind> {
   if (isApiErrorResponse(response.body)) {
-    return ApiError.getApiResponseError(
+    return OkapiError.getApiResponseError(
       response.body,
       response.status,
       response.statusText,
@@ -162,11 +162,16 @@ export function createApiErrorFromResponse<TCustomKind extends string = never>(
     )
   }
 
-  return ApiError.getHttpResponseError(response.status, response.statusText, response.body, options)
+  return OkapiError.getHttpResponseError(
+    response.status,
+    response.statusText,
+    response.body,
+    options,
+  )
 }
 
 export function mapApiError<TCustomKind extends string>(
-  error: ApiError<TCustomKind>,
+  error: OkapiError<TCustomKind>,
   options?: MapApiErrorOptions<TCustomKind>,
 ): MappedApiError<TCustomKind>
 export function mapApiError<TCustomKind extends string = never>(
@@ -193,29 +198,29 @@ export function mapApiError(
 }
 
 export function normalizeApiError<TCustomKind extends string>(
-  error: ApiError<TCustomKind>,
+  error: OkapiError<TCustomKind>,
   options?: ApiErrorOptions<TCustomKind>,
-): ApiError<TCustomKind>
+): OkapiError<TCustomKind>
 export function normalizeApiError<TCustomKind extends string = never>(
   error: unknown,
   options?: ApiErrorOptions<TCustomKind>,
-): ApiError<TCustomKind>
+): OkapiError<TCustomKind>
 export function normalizeApiError(
   error: unknown,
   options: ApiErrorOptions<string> = {},
-): ApiError<string> {
-  if (error instanceof ApiError) {
+): OkapiError<string> {
+  if (error instanceof OkapiError) {
     return error
   }
 
   if (isAbortError(error)) {
-    return ApiError.getNetworkError(error, options)
+    return OkapiError.getNetworkError(error, options)
   }
 
-  return ApiError.getUnexpectedError(error, options)
+  return OkapiError.getUnexpectedError(error, options)
 }
 
-function getApiErrorType<TCustomKind extends string>(error: ApiError<TCustomKind>): ApiErrorType {
+function getApiErrorType<TCustomKind extends string>(error: OkapiError<TCustomKind>): ApiErrorType {
   switch (error.kind) {
     case API_ERROR_KIND.NETWORK:
     case API_ERROR_KIND.ABORT:
@@ -265,7 +270,7 @@ function getKindFromStatus(statusCode?: number, raw?: ApiErrorResponse): Default
 }
 
 function getMappedApiErrorMessage<TCustomKind extends string>(
-  error: ApiError<TCustomKind>,
+  error: OkapiError<TCustomKind>,
   options: MapApiErrorOptions<TCustomKind>,
 ): string {
   const resolvedMessage = options.i18n?.resolveMessage?.(error)
@@ -291,7 +296,7 @@ function getMappedApiErrorMessage<TCustomKind extends string>(
 }
 
 function getMappedApiErrorTitle<TCustomKind extends string>(
-  error: ApiError<TCustomKind>,
+  error: OkapiError<TCustomKind>,
   options: MapApiErrorOptions<TCustomKind>,
 ): string {
   const resolvedTitle = options.i18n?.resolveTitle?.(error)

@@ -1,7 +1,7 @@
 import { expect, expectTypeOf, test } from 'vitest'
 
 import {
-  ApiError,
+  OkapiError,
   createFetchErrorMapper,
   createFetchResponseErrorMapper,
   mapApiError,
@@ -23,17 +23,18 @@ test('error kind type can include consumer-defined kinds', () => {
   expectTypeOf<DefaultApiErrorKind>().toExtend<AppErrorKind>()
 })
 
-test('consumers can construct an ApiError with a custom kind', () => {
+test('consumers can construct an OkapiError with a custom kind', () => {
   type AppErrorKind = 'project-archived'
 
-  const error = new ApiError<AppErrorKind>({
+  const error = new OkapiError<AppErrorKind>({
     kind: 'project-archived',
     message: 'This project has been archived.',
   })
 
   expectTypeOf(error.kind).toEqualTypeOf<ApiErrorKind<AppErrorKind>>()
-  expectTypeOf(normalizeApiError(error)).toEqualTypeOf<ApiError<AppErrorKind>>()
+  expectTypeOf(normalizeApiError(error)).toEqualTypeOf<OkapiError<AppErrorKind>>()
   expectTypeOf(mapApiError(error)).toEqualTypeOf<MappedApiError<AppErrorKind>>()
+  expect(error.name).toBe('OkapiError')
   expect(error.kind).toBe('project-archived')
   expect(error.message).toBe('This project has been archived.')
 })
@@ -95,7 +96,7 @@ test('resolvers take precedence over configured titles and messages', () => {
     },
   }
 
-  const error = ApiError.getHttpResponseError(404, 'Not Found')
+  const error = OkapiError.getHttpResponseError(404, 'Not Found')
   expect(mapApiError(error, options)).toMatchObject({
     title: 'Project unavailable',
     message: 'This project has been archived.',
@@ -130,7 +131,7 @@ test('titles are resolved separately from low-level error messages', () => {
       messages: { 'not-found': 'The requested item does not exist.' },
     },
   }
-  const error = ApiError.getHttpResponseError(404, undefined, undefined, options)
+  const error = OkapiError.getHttpResponseError(404, undefined, undefined, options)
   expect(error.message).toBe('The requested item does not exist.')
 
   const mapped = mapApiError(error, options)
@@ -140,14 +141,14 @@ test('titles are resolved separately from low-level error messages', () => {
 
 test('resolveTitle prop may intentionally return an empty title', () => {
   const options: ApiErrorOptions = { i18n: { resolveTitle: () => '' } }
-  const error = ApiError.getUnexpectedError(new Error('unexpected error'))
+  const error = OkapiError.getUnexpectedError(new Error('unexpected error'))
 
   expect(mapApiError(error, options).title).toBe('')
 })
 
 test('resolveMessage prop may intentionally return an empty message', () => {
   const options: ApiErrorOptions = { i18n: { resolveMessage: () => '' } }
-  const error = ApiError.getUnexpectedError(new Error('unexpected error'))
+  const error = OkapiError.getUnexpectedError(new Error('unexpected error'))
   const mapped = mapApiError(error, options)
 
   expect(mapped.message).toBe('')
@@ -219,12 +220,12 @@ test('maps configured titles and messages by kind and status', () => {
     })
   }
 
-  expect(mapApiError(ApiError.getNetworkError(new TypeError(), options), options)).toMatchObject({
+  expect(mapApiError(OkapiError.getNetworkError(new TypeError(), options), options)).toMatchObject({
     title: 'Connection problem',
     message: 'Check your internet connection and try again.',
   })
 
-  expect(mapApiError(ApiError.getUnexpectedError(new Error(), options), options)).toMatchObject({
+  expect(mapApiError(OkapiError.getUnexpectedError(new Error(), options), options)).toMatchObject({
     title: 'Something went wrong',
     message: 'An unexpected error occurred. Please try again.',
   })
@@ -258,12 +259,12 @@ test('maps titles and messages with resolvers', () => {
     })
   }
 
-  expect(mapApiError(ApiError.getNetworkError(new TypeError()), options)).toMatchObject({
+  expect(mapApiError(OkapiError.getNetworkError(new TypeError()), options)).toMatchObject({
     title: 'Connection problem',
     message: 'Check your internet connection and try again.',
   })
 
-  expect(mapApiError(ApiError.getUnexpectedError(new Error()), options)).toMatchObject({
+  expect(mapApiError(OkapiError.getUnexpectedError(new Error()), options)).toMatchObject({
     title: 'Something went wrong',
     message: 'An unexpected error occurred. Please try again.',
   })

@@ -1,1 +1,1 @@
-export * from './apiError'
+export * from './okapiError'
