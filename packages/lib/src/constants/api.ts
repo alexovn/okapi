@@ -20,3 +20,11 @@ export const API_ERROR_TYPE = {
   UNEXPECTED: 'unexpected',
   VALIDATION: 'validation',
 } as const
+
+export const API_ERROR_SOURCE = {
+  API: 'api',
+  HTTP: 'http',
+  NETWORK: 'network',
+  UNEXPECTED: 'unexpected',
+  CUSTOM: 'custom',
+} as const

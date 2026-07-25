@@ -1,4 +1,4 @@
-import { API_ERROR_KIND, API_ERROR_TYPE } from '../constants/api'
+import { API_ERROR_KIND, API_ERROR_SOURCE, API_ERROR_TYPE } from '../constants/api'
 import type { ApiError } from '../core/apiError'
 
 export type ApiValidationErrors = Record<string, string[]>
@@ -18,7 +18,7 @@ export type ApiErrorKind<TCustomKind extends string = never> = DefaultApiErrorKi
 
 export type ApiErrorType = (typeof API_ERROR_TYPE)[keyof typeof API_ERROR_TYPE]
 
-export type ApiErrorSource = 'api' | 'http' | 'network' | 'unexpected' | 'custom'
+export type ApiErrorSource = (typeof API_ERROR_SOURCE)[keyof typeof API_ERROR_SOURCE]
 
 export interface MappedApiError<TCustomKind extends string = never> {
   type: ApiErrorType
@@ -95,7 +95,6 @@ export interface ApiErrorResponseLike {
 export interface ApiErrorParams<TCustomKind extends string = never> {
   kind: ApiErrorKind<TCustomKind>
   message: string
-  /** Identifies which normalization path produced the error. */
   source?: ApiErrorSource
   statusCode?: number
   statusText?: string
