@@ -1,4 +1,4 @@
-import { API_ERROR_KIND, API_ERROR_SOURCE, API_ERROR_TYPE } from '../constants/api'
+import { OKAPI_ERROR_KIND, OKAPI_ERROR_SOURCE, OKAPI_ERROR_TYPE } from '../constants/okapiError'
 import type { OkapiError } from '../core/okapiError'
 
 export type ApiValidationErrors = Record<string, string[]>
@@ -12,79 +12,79 @@ export interface ApiErrorResponse {
   errors?: ApiValidationErrors
 }
 
-export type DefaultApiErrorKind = (typeof API_ERROR_KIND)[keyof typeof API_ERROR_KIND]
+export type DefaultOkapiErrorKind = (typeof OKAPI_ERROR_KIND)[keyof typeof OKAPI_ERROR_KIND]
 
-export type ApiErrorKind<TCustomKind extends string = never> = DefaultApiErrorKind | TCustomKind
+export type OkapiErrorKind<TCustomKind extends string = never> = DefaultOkapiErrorKind | TCustomKind
 
-export type ApiErrorType = (typeof API_ERROR_TYPE)[keyof typeof API_ERROR_TYPE]
+export type OkapiErrorType = (typeof OKAPI_ERROR_TYPE)[keyof typeof OKAPI_ERROR_TYPE]
 
-export type ApiErrorSource = (typeof API_ERROR_SOURCE)[keyof typeof API_ERROR_SOURCE]
+export type OkapiErrorSource = (typeof OKAPI_ERROR_SOURCE)[keyof typeof OKAPI_ERROR_SOURCE]
 
-export interface MappedApiError<TCustomKind extends string = never> {
-  type: ApiErrorType
+export interface MappedOkapiError<TCustomKind extends string = never> {
+  type: OkapiErrorType
   title: string
   message: string
   details: OkapiError<TCustomKind>
   errors?: ApiValidationErrors
 }
 
-export type ApiErrorTitles<TCustomKind extends string = never> = Partial<
-  Record<ApiErrorKind<TCustomKind>, string>
+export type OkapiErrorTitles<TCustomKind extends string = never> = Partial<
+  Record<OkapiErrorKind<TCustomKind>, string>
 >
 
-export type ApiErrorStatusTitles = Partial<Record<number, string>>
+export type OkapiErrorStatusTitles = Partial<Record<number, string>>
 
-export type ApiErrorMessages<TCustomKind extends string = never> = Partial<
-  Record<ApiErrorKind<TCustomKind>, string>
+export type OkapiErrorMessages<TCustomKind extends string = never> = Partial<
+  Record<OkapiErrorKind<TCustomKind>, string>
 >
 
-export type ApiErrorStatusMessages = Partial<Record<number, string>>
+export type OkapiErrorStatusMessages = Partial<Record<number, string>>
 
-export type ApiErrorMessageResolver<TCustomKind extends string = never> = (
+export type OkapiErrorMessageResolver<TCustomKind extends string = never> = (
   error: OkapiError<TCustomKind>,
 ) => string | undefined
 
-export type ApiErrorTitleResolver<TCustomKind extends string = never> = (
+export type OkapiErrorTitleResolver<TCustomKind extends string = never> = (
   error: OkapiError<TCustomKind>,
 ) => string | undefined
 
-export interface ApiErrorI18nOptions<TCustomKind extends string = never> {
-  titles?: ApiErrorTitles<TCustomKind>
-  statusTitles?: ApiErrorStatusTitles
-  messages?: ApiErrorMessages<TCustomKind>
-  statusMessages?: ApiErrorStatusMessages
-  resolveTitle?: ApiErrorTitleResolver<TCustomKind>
-  resolveMessage?: ApiErrorMessageResolver<TCustomKind>
+export interface OkapiErrorI18nOptions<TCustomKind extends string = never> {
+  titles?: OkapiErrorTitles<TCustomKind>
+  statusTitles?: OkapiErrorStatusTitles
+  messages?: OkapiErrorMessages<TCustomKind>
+  statusMessages?: OkapiErrorStatusMessages
+  resolveTitle?: OkapiErrorTitleResolver<TCustomKind>
+  resolveMessage?: OkapiErrorMessageResolver<TCustomKind>
 }
 
-export interface ApiErrorKindContext {
-  source: ApiErrorSource
+export interface OkapiErrorKindContext {
+  source: OkapiErrorSource
   statusCode?: number
   statusText?: string
   raw?: unknown
   cause?: unknown
 }
 
-export type ApiErrorKindResolver<TCustomKind extends string = never> = (
-  context: ApiErrorKindContext,
-) => ApiErrorKind<TCustomKind> | undefined
+export type OkapiErrorKindResolver<TCustomKind extends string = never> = (
+  context: OkapiErrorKindContext,
+) => OkapiErrorKind<TCustomKind> | undefined
 
-export interface ApiErrorOptions<TCustomKind extends string = never> {
-  i18n?: ApiErrorI18nOptions<TCustomKind>
-  resolveKind?: ApiErrorKindResolver<TCustomKind>
+export interface OkapiErrorOptions<TCustomKind extends string = never> {
+  i18n?: OkapiErrorI18nOptions<TCustomKind>
+  resolveKind?: OkapiErrorKindResolver<TCustomKind>
 }
 
-export interface MapApiErrorOptions<
+export interface MapOkapiErrorOptions<
   TCustomKind extends string = never,
-> extends ApiErrorOptions<TCustomKind> {}
+> extends OkapiErrorOptions<TCustomKind> {}
 
-export interface ApiErrorAdapterOptions<
+export interface OkapiErrorAdapterOptions<
   TCustomKind extends string = never,
-> extends ApiErrorOptions<TCustomKind> {}
+> extends OkapiErrorOptions<TCustomKind> {}
 
-export type ApiErrorMapper<TCustomKind extends string = never> = (
+export type OkapiErrorMapper<TCustomKind extends string = never> = (
   error: unknown,
-) => MappedApiError<TCustomKind>
+) => MappedOkapiError<TCustomKind>
 
 export interface ApiErrorResponseLike {
   status: number
@@ -92,10 +92,10 @@ export interface ApiErrorResponseLike {
   body?: unknown
 }
 
-export interface ApiErrorParams<TCustomKind extends string = never> {
-  kind: ApiErrorKind<TCustomKind>
+export interface OkapiErrorParams<TCustomKind extends string = never> {
+  kind: OkapiErrorKind<TCustomKind>
   message: string
-  source?: ApiErrorSource
+  source?: OkapiErrorSource
   statusCode?: number
   statusText?: string
   validationErrors?: ApiValidationErrors

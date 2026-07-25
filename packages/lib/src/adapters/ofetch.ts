@@ -3,19 +3,19 @@ import { FetchError } from 'ofetch'
 import {
   OkapiError,
   createApiErrorFromResponse,
-  mapApiError,
-  normalizeApiError,
+  mapOkapiError,
+  normalizeOkapiError,
 } from '../core/okapiError'
-import type { ApiErrorAdapterOptions, ApiErrorMapper } from '../types/api'
+import type { OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/api'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 
 export function getOfetchError<TCustomKind extends string = never>(
   error: unknown,
-  options?: ApiErrorAdapterOptions<TCustomKind>,
+  options?: OkapiErrorAdapterOptions<TCustomKind>,
 ): OkapiError<TCustomKind> {
   if (!(error instanceof FetchError)) {
-    return normalizeApiError(error, options)
+    return normalizeOkapiError(error, options)
   }
 
   if (error.response) {
@@ -33,7 +33,7 @@ export function getOfetchError<TCustomKind extends string = never>(
 }
 
 export function createOfetchErrorMapper<TCustomKind extends string = never>(
-  options: ApiErrorAdapterOptions<TCustomKind> = {},
-): ApiErrorMapper<TCustomKind> {
-  return (error) => mapApiError(getOfetchError(error, options), options)
+  options: OkapiErrorAdapterOptions<TCustomKind> = {},
+): OkapiErrorMapper<TCustomKind> {
+  return (error) => mapOkapiError(getOfetchError(error, options), options)
 }

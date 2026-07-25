@@ -1,4 +1,4 @@
-export const API_ERROR_KIND = {
+export const OKAPI_ERROR_KIND = {
   NETWORK: 'network',
   ABORT: 'abort',
   UNAUTHORIZED: 'unauthorized',
@@ -12,7 +12,7 @@ export const API_ERROR_KIND = {
   UNEXPECTED: 'unexpected',
 } as const
 
-export const API_ERROR_TYPE = {
+export const OKAPI_ERROR_TYPE = {
   AUTH: 'auth',
   BUSINESS: 'business',
   NETWORK: 'network',
@@ -21,7 +21,7 @@ export const API_ERROR_TYPE = {
   VALIDATION: 'validation',
 } as const
 
-export const API_ERROR_SOURCE = {
+export const OKAPI_ERROR_SOURCE = {
   API: 'api',
   HTTP: 'http',
   NETWORK: 'network',

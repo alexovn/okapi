@@ -1,6 +1,6 @@
-import type { ApiErrorMessages, ApiErrorTitles } from '../../src'
+import type { OkapiErrorMessages, OkapiErrorTitles } from '../../src'
 
-export const TITLES: ApiErrorTitles = {
+export const TITLES: OkapiErrorTitles = {
   unauthorized: 'Authentication required',
   forbidden: 'Access denied',
   'not-found': 'Not found',
@@ -11,7 +11,7 @@ export const TITLES: ApiErrorTitles = {
   unexpected: 'Something went wrong',
 }
 
-export const MESSAGES: ApiErrorMessages = {
+export const MESSAGES: OkapiErrorMessages = {
   unauthorized: 'Sign in to continue.',
   forbidden: 'You do not have permission to perform this action.',
   'not-found': 'The requested resource could not be found.',

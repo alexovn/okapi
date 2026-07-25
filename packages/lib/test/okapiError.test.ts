@@ -4,23 +4,23 @@ import {
   OkapiError,
   createFetchErrorMapper,
   createFetchResponseErrorMapper,
-  mapApiError,
-  normalizeApiError,
+  mapOkapiError,
+  normalizeOkapiError,
 } from '../src'
 import type {
-  ApiErrorAdapterOptions,
-  ApiErrorKind,
-  ApiErrorOptions,
-  DefaultApiErrorKind,
-  MappedApiError,
+  OkapiErrorAdapterOptions,
+  OkapiErrorKind,
+  OkapiErrorOptions,
+  DefaultOkapiErrorKind,
+  MappedOkapiError,
 } from '../src'
 import { TITLES, MESSAGES, HTTP_CASES } from './constants'
 
-test('error kind type can include consumer-defined kinds', () => {
-  type AppErrorKind = ApiErrorKind<'project-archived'>
+test('Okapi error kind type can include consumer-defined kinds', () => {
+  type AppErrorKind = OkapiErrorKind<'project-archived'>
 
   expectTypeOf<'project-archived'>().toExtend<AppErrorKind>()
-  expectTypeOf<DefaultApiErrorKind>().toExtend<AppErrorKind>()
+  expectTypeOf<DefaultOkapiErrorKind>().toExtend<AppErrorKind>()
 })
 
 test('consumers can construct an OkapiError with a custom kind', () => {
@@ -31,9 +31,9 @@ test('consumers can construct an OkapiError with a custom kind', () => {
     message: 'This project has been archived.',
   })
 
-  expectTypeOf(error.kind).toEqualTypeOf<ApiErrorKind<AppErrorKind>>()
-  expectTypeOf(normalizeApiError(error)).toEqualTypeOf<OkapiError<AppErrorKind>>()
-  expectTypeOf(mapApiError(error)).toEqualTypeOf<MappedApiError<AppErrorKind>>()
+  expectTypeOf(error.kind).toEqualTypeOf<OkapiErrorKind<AppErrorKind>>()
+  expectTypeOf(normalizeOkapiError(error)).toEqualTypeOf<OkapiError<AppErrorKind>>()
+  expectTypeOf(mapOkapiError(error)).toEqualTypeOf<MappedOkapiError<AppErrorKind>>()
   expect(error.name).toBe('OkapiError')
   expect(error.kind).toBe('project-archived')
   expect(error.message).toBe('This project has been archived.')
@@ -42,7 +42,7 @@ test('consumers can construct an OkapiError with a custom kind', () => {
 test('adapters classify and translate consumer-defined error kinds', () => {
   type AppErrorKind = 'project-archived' | 'subscription-expired'
 
-  const options: ApiErrorAdapterOptions<AppErrorKind> = {
+  const options: OkapiErrorAdapterOptions<AppErrorKind> = {
     resolveKind: ({ source, statusCode, raw }) => {
       if (
         source === 'api' &&
@@ -67,7 +67,7 @@ test('adapters classify and translate consumer-defined error kinds', () => {
     { message: 'Internal backend details', code: 'PROJECT_ARCHIVED' },
   )
 
-  expectTypeOf(mapped).toEqualTypeOf<MappedApiError<AppErrorKind>>()
+  expectTypeOf(mapped).toEqualTypeOf<MappedOkapiError<AppErrorKind>>()
   expect(mapped).toMatchObject({
     type: 'business',
     title: 'Project archived',
@@ -85,7 +85,7 @@ test('custom kind resolution falls back to built-in classification', () => {
 })
 
 test('resolvers take precedence over configured titles and messages', () => {
-  const options: ApiErrorOptions = {
+  const options: OkapiErrorOptions = {
     i18n: {
       resolveTitle: () => 'Project unavailable',
       resolveMessage: () => 'This project has been archived.',
@@ -97,7 +97,7 @@ test('resolvers take precedence over configured titles and messages', () => {
   }
 
   const error = OkapiError.getHttpResponseError(404, 'Not Found')
-  expect(mapApiError(error, options)).toMatchObject({
+  expect(mapOkapiError(error, options)).toMatchObject({
     title: 'Project unavailable',
     message: 'This project has been archived.',
   })
@@ -124,7 +124,7 @@ test('resolveMessage prop handles network and unexpected errors dynamically', ()
 })
 
 test('titles are resolved separately from low-level error messages', () => {
-  const options: ApiErrorOptions = {
+  const options: OkapiErrorOptions = {
     i18n: {
       titles: { 'not-found': 'Not here' },
       statusTitles: { 404: 'Missing' },
@@ -134,28 +134,28 @@ test('titles are resolved separately from low-level error messages', () => {
   const error = OkapiError.getHttpResponseError(404, undefined, undefined, options)
   expect(error.message).toBe('The requested item does not exist.')
 
-  const mapped = mapApiError(error, options)
+  const mapped = mapOkapiError(error, options)
   expect(mapped.title).toBe('Missing')
   expect(mapped.message).toBe('The requested item does not exist.')
 })
 
 test('resolveTitle prop may intentionally return an empty title', () => {
-  const options: ApiErrorOptions = { i18n: { resolveTitle: () => '' } }
+  const options: OkapiErrorOptions = { i18n: { resolveTitle: () => '' } }
   const error = OkapiError.getUnexpectedError(new Error('unexpected error'))
 
-  expect(mapApiError(error, options).title).toBe('')
+  expect(mapOkapiError(error, options).title).toBe('')
 })
 
 test('resolveMessage prop may intentionally return an empty message', () => {
-  const options: ApiErrorOptions = { i18n: { resolveMessage: () => '' } }
+  const options: OkapiErrorOptions = { i18n: { resolveMessage: () => '' } }
   const error = OkapiError.getUnexpectedError(new Error('unexpected error'))
-  const mapped = mapApiError(error, options)
+  const mapped = mapOkapiError(error, options)
 
   expect(mapped.message).toBe('')
 })
 
 test('backend messages are exposed separately and are not shown by default', () => {
-  const options: ApiErrorOptions = {
+  const options: OkapiErrorOptions = {
     i18n: {
       resolveMessage: (error) => {
         expect(error.statusText).toBe('Bad Request')
@@ -193,7 +193,7 @@ test('mapped errors expose independent built-in titles and messages', () => {
 })
 
 test('maps configured titles and messages by kind and status', () => {
-  const options: ApiErrorOptions = {
+  const options: OkapiErrorOptions = {
     i18n: {
       titles: TITLES,
       statusTitles: {
@@ -220,19 +220,23 @@ test('maps configured titles and messages by kind and status', () => {
     })
   }
 
-  expect(mapApiError(OkapiError.getNetworkError(new TypeError(), options), options)).toMatchObject({
+  expect(
+    mapOkapiError(OkapiError.getNetworkError(new TypeError(), options), options),
+  ).toMatchObject({
     title: 'Connection problem',
     message: 'Check your internet connection and try again.',
   })
 
-  expect(mapApiError(OkapiError.getUnexpectedError(new Error(), options), options)).toMatchObject({
-    title: 'Something went wrong',
-    message: 'An unexpected error occurred. Please try again.',
-  })
+  expect(mapOkapiError(OkapiError.getUnexpectedError(new Error(), options), options)).toMatchObject(
+    {
+      title: 'Something went wrong',
+      message: 'An unexpected error occurred. Please try again.',
+    },
+  )
 })
 
 test('maps titles and messages with resolvers', () => {
-  const options: ApiErrorOptions = {
+  const options: OkapiErrorOptions = {
     i18n: {
       resolveTitle: ({ kind, statusCode }) => {
         if (statusCode === 503) {
@@ -259,12 +263,12 @@ test('maps titles and messages with resolvers', () => {
     })
   }
 
-  expect(mapApiError(OkapiError.getNetworkError(new TypeError()), options)).toMatchObject({
+  expect(mapOkapiError(OkapiError.getNetworkError(new TypeError()), options)).toMatchObject({
     title: 'Connection problem',
     message: 'Check your internet connection and try again.',
   })
 
-  expect(mapApiError(OkapiError.getUnexpectedError(new Error()), options)).toMatchObject({
+  expect(mapOkapiError(OkapiError.getUnexpectedError(new Error()), options)).toMatchObject({
     title: 'Something went wrong',
     message: 'An unexpected error occurred. Please try again.',
   })

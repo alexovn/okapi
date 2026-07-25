@@ -1,7 +1,7 @@
 import type { STATUS_CODE } from '../../constants'
-import type { ApiErrorKind } from '../../types/api'
+import type { OkapiErrorKind } from '../../types/api'
 
-export const EN_API_ERROR_TITLE = {
+export const EN_OKAPI_ERROR_TITLE = {
   network: 'Connection problem',
   abort: 'Request cancelled',
   unauthorized: 'Authentication required',
@@ -13,9 +13,9 @@ export const EN_API_ERROR_TITLE = {
   business: 'Request failed',
   server: 'Server error',
   unexpected: 'Something went wrong',
-} satisfies Record<ApiErrorKind, string>
+} satisfies Record<OkapiErrorKind, string>
 
-export const EN_API_ERROR_MESSAGE = {
+export const EN_OKAPI_ERROR_MESSAGE = {
   network: 'Network unavailable',
   abort: 'Request has been cancelled',
   unauthorized: 'Unauthorized',
@@ -27,7 +27,7 @@ export const EN_API_ERROR_MESSAGE = {
   business: 'Business logic error',
   server: 'Server error',
   unexpected: 'Unexpected error occurred',
-} satisfies Record<ApiErrorKind, string>
+} satisfies Record<OkapiErrorKind, string>
 
 export const EN_HTTP_ERROR_TITLE: Partial<Record<number, string>> = {
   400: 'Bad request',

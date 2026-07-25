@@ -1,35 +1,39 @@
-import { API_ERROR_KIND, API_ERROR_TYPE, API_ERROR_SOURCE } from '../constants/api'
+import { OKAPI_ERROR_KIND, OKAPI_ERROR_TYPE, OKAPI_ERROR_SOURCE } from '../constants/okapiError'
 import { STATUS_CODE } from '../constants/statusCode'
-import { EN_API_ERROR_MESSAGE, EN_API_ERROR_TITLE, EN_HTTP_ERROR_TITLE } from '../i18n/locales/en'
+import {
+  EN_OKAPI_ERROR_MESSAGE,
+  EN_OKAPI_ERROR_TITLE,
+  EN_HTTP_ERROR_TITLE,
+} from '../i18n/locales/en'
 import type {
   ApiErrorResponse,
-  ApiErrorSource,
+  OkapiErrorSource,
   ApiValidationErrors,
-  ApiErrorKind,
-  DefaultApiErrorKind,
-  ApiErrorKindContext,
-  ApiErrorParams,
-  ApiErrorOptions,
+  OkapiErrorKind,
+  DefaultOkapiErrorKind,
+  OkapiErrorKindContext,
+  OkapiErrorParams,
+  OkapiErrorOptions,
   ApiErrorResponseLike,
-  MapApiErrorOptions,
-  MappedApiError,
-  ApiErrorType,
+  MapOkapiErrorOptions,
+  MappedOkapiError,
+  OkapiErrorType,
 } from '../types/api'
 
 export class OkapiError<TCustomKind extends string = never> extends Error {
-  readonly kind: ApiErrorKind<TCustomKind>
-  readonly source: ApiErrorSource
+  readonly kind: OkapiErrorKind<TCustomKind>
+  readonly source: OkapiErrorSource
   readonly statusCode?: number
   readonly statusText?: string
   readonly validationErrors?: ApiValidationErrors
   readonly raw?: unknown
 
-  constructor(params: ApiErrorParams<TCustomKind>) {
+  constructor(params: OkapiErrorParams<TCustomKind>) {
     super(params.message, { cause: params.cause })
 
     this.name = 'OkapiError'
     this.kind = params.kind
-    this.source = params.source ?? API_ERROR_SOURCE.CUSTOM
+    this.source = params.source ?? OKAPI_ERROR_SOURCE.CUSTOM
     this.statusCode = params.statusCode
     this.statusText = params.statusText
     this.validationErrors = params.validationErrors
@@ -43,29 +47,29 @@ export class OkapiError<TCustomKind extends string = never> extends Error {
   }
 
   get isNetworkError(): boolean {
-    return this.kind === API_ERROR_KIND.NETWORK || this.kind === API_ERROR_KIND.ABORT
+    return this.kind === OKAPI_ERROR_KIND.NETWORK || this.kind === OKAPI_ERROR_KIND.ABORT
   }
 
   get isValidationError(): boolean {
-    return this.kind === API_ERROR_KIND.VALIDATION
+    return this.kind === OKAPI_ERROR_KIND.VALIDATION
   }
 
   static getApiResponseError<TCustomKind extends string = never>(
     raw: ApiErrorResponse,
     statusCode?: number,
     statusText?: string,
-    options: ApiErrorOptions<TCustomKind> = {},
+    options: OkapiErrorOptions<TCustomKind> = {},
   ): OkapiError<TCustomKind> {
-    const kind = resolveApiErrorKind(
-      { source: API_ERROR_SOURCE.API, statusCode, statusText, raw },
+    const kind = resolveOkapiErrorKind(
+      { source: OKAPI_ERROR_SOURCE.API, statusCode, statusText, raw },
       options,
       () => getKindFromStatus(statusCode, raw),
     )
 
     return new OkapiError<TCustomKind>({
       kind,
-      source: API_ERROR_SOURCE.API,
-      message: getApiErrorMessageForKind(kind, options),
+      source: OKAPI_ERROR_SOURCE.API,
+      message: getOkapiErrorMessageForKind(kind, options),
       statusCode,
       statusText,
       validationErrors: raw.errors,
@@ -77,18 +81,18 @@ export class OkapiError<TCustomKind extends string = never> extends Error {
     statusCode: number,
     statusText?: string,
     raw?: unknown,
-    options: ApiErrorOptions<TCustomKind> = {},
+    options: OkapiErrorOptions<TCustomKind> = {},
   ): OkapiError<TCustomKind> {
-    const kind = resolveApiErrorKind(
-      { source: API_ERROR_SOURCE.HTTP, statusCode, statusText, raw },
+    const kind = resolveOkapiErrorKind(
+      { source: OKAPI_ERROR_SOURCE.HTTP, statusCode, statusText, raw },
       options,
       () => getKindFromStatus(statusCode),
     )
 
     return new OkapiError<TCustomKind>({
       kind,
-      source: API_ERROR_SOURCE.HTTP,
-      message: getApiErrorMessageForKind(kind, options),
+      source: OKAPI_ERROR_SOURCE.HTTP,
+      message: getOkapiErrorMessageForKind(kind, options),
       statusCode,
       statusText,
       raw,
@@ -97,37 +101,37 @@ export class OkapiError<TCustomKind extends string = never> extends Error {
 
   static getNetworkError<TCustomKind extends string = never>(
     error: unknown,
-    options: ApiErrorOptions<TCustomKind> = {},
+    options: OkapiErrorOptions<TCustomKind> = {},
   ): OkapiError<TCustomKind> {
-    const defaultKind = isAbortError(error) ? API_ERROR_KIND.ABORT : API_ERROR_KIND.NETWORK
-    const kind = resolveApiErrorKind(
-      { source: API_ERROR_SOURCE.NETWORK, cause: error },
+    const defaultKind = isAbortError(error) ? OKAPI_ERROR_KIND.ABORT : OKAPI_ERROR_KIND.NETWORK
+    const kind = resolveOkapiErrorKind(
+      { source: OKAPI_ERROR_SOURCE.NETWORK, cause: error },
       options,
       () => defaultKind,
     )
 
     return new OkapiError<TCustomKind>({
       kind,
-      source: API_ERROR_SOURCE.NETWORK,
-      message: getApiErrorMessageForKind(kind, options),
+      source: OKAPI_ERROR_SOURCE.NETWORK,
+      message: getOkapiErrorMessageForKind(kind, options),
       cause: error,
     })
   }
 
   static getUnexpectedError<TCustomKind extends string = never>(
     error: unknown,
-    options: ApiErrorOptions<TCustomKind> = {},
+    options: OkapiErrorOptions<TCustomKind> = {},
   ): OkapiError<TCustomKind> {
-    const kind = resolveApiErrorKind(
-      { source: API_ERROR_SOURCE.UNEXPECTED, cause: error },
+    const kind = resolveOkapiErrorKind(
+      { source: OKAPI_ERROR_SOURCE.UNEXPECTED, cause: error },
       options,
-      () => API_ERROR_KIND.UNEXPECTED,
+      () => OKAPI_ERROR_KIND.UNEXPECTED,
     )
 
     return new OkapiError<TCustomKind>({
       kind,
-      source: API_ERROR_SOURCE.UNEXPECTED,
-      message: getApiErrorMessageForKind(kind, options),
+      source: OKAPI_ERROR_SOURCE.UNEXPECTED,
+      message: getOkapiErrorMessageForKind(kind, options),
       cause: error,
     })
   }
@@ -151,7 +155,7 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
 
 export function createApiErrorFromResponse<TCustomKind extends string = never>(
   response: ApiErrorResponseLike,
-  options: ApiErrorOptions<TCustomKind> = {},
+  options: OkapiErrorOptions<TCustomKind> = {},
 ): OkapiError<TCustomKind> {
   if (isApiErrorResponse(response.body)) {
     return OkapiError.getApiResponseError(
@@ -170,44 +174,44 @@ export function createApiErrorFromResponse<TCustomKind extends string = never>(
   )
 }
 
-export function mapApiError<TCustomKind extends string>(
+export function mapOkapiError<TCustomKind extends string>(
   error: OkapiError<TCustomKind>,
-  options?: MapApiErrorOptions<TCustomKind>,
-): MappedApiError<TCustomKind>
-export function mapApiError<TCustomKind extends string = never>(
+  options?: MapOkapiErrorOptions<TCustomKind>,
+): MappedOkapiError<TCustomKind>
+export function mapOkapiError<TCustomKind extends string = never>(
   error: unknown,
-  options?: MapApiErrorOptions<TCustomKind>,
-): MappedApiError<TCustomKind>
-export function mapApiError(
+  options?: MapOkapiErrorOptions<TCustomKind>,
+): MappedOkapiError<TCustomKind>
+export function mapOkapiError(
   error: unknown,
-  options: MapApiErrorOptions<string> = {},
-): MappedApiError<string> {
-  const apiError = normalizeApiError(error, options)
-  const mappedError: MappedApiError<string> = {
-    type: getApiErrorType(apiError),
-    title: getMappedApiErrorTitle(apiError, options),
-    message: getMappedApiErrorMessage(apiError, options),
-    details: apiError,
+  options: MapOkapiErrorOptions<string> = {},
+): MappedOkapiError<string> {
+  const okapiError = normalizeOkapiError(error, options)
+  const mappedError: MappedOkapiError<string> = {
+    type: getOkapiErrorType(okapiError),
+    title: getMappedOkapiErrorTitle(okapiError, options),
+    message: getMappedOkapiErrorMessage(okapiError, options),
+    details: okapiError,
   }
 
-  if (apiError.kind === API_ERROR_KIND.VALIDATION) {
-    mappedError.errors = apiError.validationErrors
+  if (okapiError.kind === OKAPI_ERROR_KIND.VALIDATION) {
+    mappedError.errors = okapiError.validationErrors
   }
 
   return mappedError
 }
 
-export function normalizeApiError<TCustomKind extends string>(
+export function normalizeOkapiError<TCustomKind extends string>(
   error: OkapiError<TCustomKind>,
-  options?: ApiErrorOptions<TCustomKind>,
+  options?: OkapiErrorOptions<TCustomKind>,
 ): OkapiError<TCustomKind>
-export function normalizeApiError<TCustomKind extends string = never>(
+export function normalizeOkapiError<TCustomKind extends string = never>(
   error: unknown,
-  options?: ApiErrorOptions<TCustomKind>,
+  options?: OkapiErrorOptions<TCustomKind>,
 ): OkapiError<TCustomKind>
-export function normalizeApiError(
+export function normalizeOkapiError(
   error: unknown,
-  options: ApiErrorOptions<string> = {},
+  options: OkapiErrorOptions<string> = {},
 ): OkapiError<string> {
   if (error instanceof OkapiError) {
     return error
@@ -220,58 +224,60 @@ export function normalizeApiError(
   return OkapiError.getUnexpectedError(error, options)
 }
 
-function getApiErrorType<TCustomKind extends string>(error: OkapiError<TCustomKind>): ApiErrorType {
+function getOkapiErrorType<TCustomKind extends string>(
+  error: OkapiError<TCustomKind>,
+): OkapiErrorType {
   switch (error.kind) {
-    case API_ERROR_KIND.NETWORK:
-    case API_ERROR_KIND.ABORT:
-      return API_ERROR_TYPE.NETWORK
+    case OKAPI_ERROR_KIND.NETWORK:
+    case OKAPI_ERROR_KIND.ABORT:
+      return OKAPI_ERROR_TYPE.NETWORK
 
-    case API_ERROR_KIND.VALIDATION:
-      return API_ERROR_TYPE.VALIDATION
+    case OKAPI_ERROR_KIND.VALIDATION:
+      return OKAPI_ERROR_TYPE.VALIDATION
 
-    case API_ERROR_KIND.UNAUTHORIZED:
-      return API_ERROR_TYPE.AUTH
+    case OKAPI_ERROR_KIND.UNAUTHORIZED:
+      return OKAPI_ERROR_TYPE.AUTH
 
-    case API_ERROR_KIND.SERVER:
-      return API_ERROR_TYPE.SERVER
+    case OKAPI_ERROR_KIND.SERVER:
+      return OKAPI_ERROR_TYPE.SERVER
 
-    case API_ERROR_KIND.UNEXPECTED:
-      return API_ERROR_TYPE.UNEXPECTED
+    case OKAPI_ERROR_KIND.UNEXPECTED:
+      return OKAPI_ERROR_TYPE.UNEXPECTED
 
     default:
-      return API_ERROR_TYPE.BUSINESS
+      return OKAPI_ERROR_TYPE.BUSINESS
   }
 }
 
-function getKindFromStatus(statusCode?: number, raw?: ApiErrorResponse): DefaultApiErrorKind {
+function getKindFromStatus(statusCode?: number, raw?: ApiErrorResponse): DefaultOkapiErrorKind {
   if (statusCode === STATUS_CODE.UNAUTHORIZED) {
-    return API_ERROR_KIND.UNAUTHORIZED
+    return OKAPI_ERROR_KIND.UNAUTHORIZED
   }
   if (statusCode === STATUS_CODE.FORBIDDEN) {
-    return API_ERROR_KIND.FORBIDDEN
+    return OKAPI_ERROR_KIND.FORBIDDEN
   }
   if (statusCode === STATUS_CODE.NOT_FOUND) {
-    return API_ERROR_KIND.NOT_FOUND
+    return OKAPI_ERROR_KIND.NOT_FOUND
   }
   if (statusCode === STATUS_CODE.CONFLICT) {
-    return API_ERROR_KIND.CONFLICT
+    return OKAPI_ERROR_KIND.CONFLICT
   }
   if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT || raw?.errors) {
-    return API_ERROR_KIND.VALIDATION
+    return OKAPI_ERROR_KIND.VALIDATION
   }
   if (statusCode === STATUS_CODE.TOO_MANY_REQUESTS) {
-    return API_ERROR_KIND.RATE_LIMITED
+    return OKAPI_ERROR_KIND.RATE_LIMITED
   }
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
-    return API_ERROR_KIND.SERVER
+    return OKAPI_ERROR_KIND.SERVER
   }
 
-  return API_ERROR_KIND.BUSINESS
+  return OKAPI_ERROR_KIND.BUSINESS
 }
 
-function getMappedApiErrorMessage<TCustomKind extends string>(
+function getMappedOkapiErrorMessage<TCustomKind extends string>(
   error: OkapiError<TCustomKind>,
-  options: MapApiErrorOptions<TCustomKind>,
+  options: MapOkapiErrorOptions<TCustomKind>,
 ): string {
   const resolvedMessage = options.i18n?.resolveMessage?.(error)
 
@@ -295,9 +301,9 @@ function getMappedApiErrorMessage<TCustomKind extends string>(
   return error.message
 }
 
-function getMappedApiErrorTitle<TCustomKind extends string>(
+function getMappedOkapiErrorTitle<TCustomKind extends string>(
   error: OkapiError<TCustomKind>,
-  options: MapApiErrorOptions<TCustomKind>,
+  options: MapOkapiErrorOptions<TCustomKind>,
 ): string {
   const resolvedTitle = options.i18n?.resolveTitle?.(error)
 
@@ -319,21 +325,21 @@ function getMappedApiErrorTitle<TCustomKind extends string>(
   }
 
   return (
-    getDefaultHttpTitle(error.statusCode, error.statusText) ?? getApiErrorTitleForKind(error.kind)
+    getDefaultHttpTitle(error.statusCode, error.statusText) ?? getOkapiErrorTitleForKind(error.kind)
   )
 }
 
-function getApiErrorTitleForKind<TCustomKind extends string>(
-  kind: ApiErrorKind<TCustomKind>,
+function getOkapiErrorTitleForKind<TCustomKind extends string>(
+  kind: OkapiErrorKind<TCustomKind>,
 ): string {
-  return isBuiltInApiErrorKind(kind)
-    ? EN_API_ERROR_TITLE[kind]
-    : EN_API_ERROR_TITLE[API_ERROR_KIND.BUSINESS]
+  return isBuiltInOkapiErrorKind(kind)
+    ? EN_OKAPI_ERROR_TITLE[kind]
+    : EN_OKAPI_ERROR_TITLE[OKAPI_ERROR_KIND.BUSINESS]
 }
 
-function getApiErrorMessageForKind<TCustomKind extends string>(
-  kind: ApiErrorKind<TCustomKind>,
-  options: ApiErrorOptions<TCustomKind>,
+function getOkapiErrorMessageForKind<TCustomKind extends string>(
+  kind: OkapiErrorKind<TCustomKind>,
+  options: OkapiErrorOptions<TCustomKind>,
 ): string {
   const customMessage = options.i18n?.messages?.[kind]
 
@@ -341,21 +347,21 @@ function getApiErrorMessageForKind<TCustomKind extends string>(
     return customMessage
   }
 
-  return isBuiltInApiErrorKind(kind)
-    ? EN_API_ERROR_MESSAGE[kind]
-    : EN_API_ERROR_MESSAGE[API_ERROR_KIND.BUSINESS]
+  return isBuiltInOkapiErrorKind(kind)
+    ? EN_OKAPI_ERROR_MESSAGE[kind]
+    : EN_OKAPI_ERROR_MESSAGE[OKAPI_ERROR_KIND.BUSINESS]
 }
 
-function resolveApiErrorKind<TCustomKind extends string>(
-  context: ApiErrorKindContext,
-  options: ApiErrorOptions<TCustomKind>,
-  getFallback: () => DefaultApiErrorKind,
-): ApiErrorKind<TCustomKind> {
+function resolveOkapiErrorKind<TCustomKind extends string>(
+  context: OkapiErrorKindContext,
+  options: OkapiErrorOptions<TCustomKind>,
+  getFallback: () => DefaultOkapiErrorKind,
+): OkapiErrorKind<TCustomKind> {
   return options.resolveKind?.(context) ?? getFallback()
 }
 
-function isBuiltInApiErrorKind(kind: string): kind is DefaultApiErrorKind {
-  return Object.values(API_ERROR_KIND).some((value) => value === kind)
+function isBuiltInOkapiErrorKind(kind: string): kind is DefaultOkapiErrorKind {
+  return Object.values(OKAPI_ERROR_KIND).some((value) => value === kind)
 }
 
 function getDefaultHttpTitle(statusCode?: number, statusText?: string): string | undefined {
@@ -368,7 +374,7 @@ function getDefaultHttpTitle(statusCode?: number, statusText?: string): string |
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
     return (
       EN_HTTP_ERROR_TITLE[STATUS_CODE.INTERNAL_SERVER_ERROR] ??
-      EN_API_ERROR_TITLE[API_ERROR_KIND.SERVER]
+      EN_OKAPI_ERROR_TITLE[OKAPI_ERROR_KIND.SERVER]
     )
   }
 

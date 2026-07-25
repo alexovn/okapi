@@ -1,10 +1,10 @@
 import {
   OkapiError,
   createApiErrorFromResponse,
-  mapApiError,
-  normalizeApiError,
+  mapOkapiError,
+  normalizeOkapiError,
 } from '../core/okapiError'
-import type { ApiErrorAdapterOptions, MappedApiError } from '../types/api'
+import type { OkapiErrorAdapterOptions, MappedOkapiError } from '../types/api'
 
 export interface FetchResponseLike {
   status: number
@@ -14,12 +14,12 @@ export interface FetchResponseLike {
 export type FetchResponseErrorMapper<TCustomKind extends string = never> = (
   response: FetchResponseLike,
   body?: unknown,
-) => MappedApiError<TCustomKind>
+) => MappedOkapiError<TCustomKind>
 
 export type FetchErrorMapper<TCustomKind extends string = never> = (
   error: unknown,
   body?: unknown,
-) => MappedApiError<TCustomKind>
+) => MappedOkapiError<TCustomKind>
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -28,7 +28,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 export function getFetchResponseError<TCustomKind extends string = never>(
   response: FetchResponseLike,
   body?: unknown,
-  options?: ApiErrorAdapterOptions<TCustomKind>,
+  options?: OkapiErrorAdapterOptions<TCustomKind>,
 ): OkapiError<TCustomKind> {
   return createApiErrorFromResponse(
     { status: response.status, statusText: response.statusText, body },
@@ -39,7 +39,7 @@ export function getFetchResponseError<TCustomKind extends string = never>(
 export function getFetchError<TCustomKind extends string = never>(
   error: unknown,
   body?: unknown,
-  options?: ApiErrorAdapterOptions<TCustomKind>,
+  options?: OkapiErrorAdapterOptions<TCustomKind>,
 ): OkapiError<TCustomKind> {
   if (isObject(error) && typeof error.status === 'number') {
     return getFetchResponseError(
@@ -56,17 +56,17 @@ export function getFetchError<TCustomKind extends string = never>(
     return OkapiError.getNetworkError(error, options)
   }
 
-  return normalizeApiError(error, options)
+  return normalizeOkapiError(error, options)
 }
 
 export function createFetchResponseErrorMapper<TCustomKind extends string = never>(
-  options: ApiErrorAdapterOptions<TCustomKind> = {},
+  options: OkapiErrorAdapterOptions<TCustomKind> = {},
 ): FetchResponseErrorMapper<TCustomKind> {
-  return (response, body) => mapApiError(getFetchResponseError(response, body, options), options)
+  return (response, body) => mapOkapiError(getFetchResponseError(response, body, options), options)
 }
 
 export function createFetchErrorMapper<TCustomKind extends string = never>(
-  options: ApiErrorAdapterOptions<TCustomKind> = {},
+  options: OkapiErrorAdapterOptions<TCustomKind> = {},
 ): FetchErrorMapper<TCustomKind> {
-  return (error, body) => mapApiError(getFetchError(error, body, options), options)
+  return (error, body) => mapOkapiError(getFetchError(error, body, options), options)
 }

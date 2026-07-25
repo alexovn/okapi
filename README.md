@@ -118,7 +118,7 @@ export async function ofetchGet(url, options) {
 
 There's built-in support for errors translations. It uses English language by default.
 
-`Titles` and `messages` are localized when an error passes through `mapApiError` or
+`Titles` and `messages` are localized when an error passes through `mapOkapiError` or
 one of the adapter mappers. They are based on error kind (network, business, server etc.).
 
 Use `statusTitles` and `statusMessages` for fine-grained translations based on
@@ -194,7 +194,7 @@ type AppErrorKind =
   | 'project-archived'
   | 'subscription-expired'
 
-const options: ApiErrorAdapterOptions<AppErrorKind> = {
+const options: OkapiErrorAdapterOptions<AppErrorKind> = {
   resolveKind: ({ statusCode, raw }) => {
     if (
       statusCode === 404
