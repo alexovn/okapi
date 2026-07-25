@@ -1,4 +1,4 @@
-import { createOfetchErrorMapper } from '@alexovn/okapi'
+import { createOfetchErrorMapper } from '@alexovn/okapi/ofetch'
 import { $fetch, type FetchOptions } from 'ofetch'
 import { useI18n } from 'vue-i18n'
 

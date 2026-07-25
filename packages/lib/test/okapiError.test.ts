@@ -1,12 +1,6 @@
 import { expect, expectTypeOf, test } from 'vitest'
 
-import {
-  OkapiError,
-  createFetchErrorMapper,
-  createFetchResponseErrorMapper,
-  mapOkapiError,
-  normalizeOkapiError,
-} from '../src'
+import { OkapiError, mapOkapiError, normalizeOkapiError } from '../src'
 import type {
   OkapiErrorAdapterOptions,
   OkapiErrorKind,
@@ -14,6 +8,7 @@ import type {
   DefaultOkapiErrorKind,
   MappedOkapiError,
 } from '../src'
+import { createFetchErrorMapper, createFetchResponseErrorMapper } from '../src/adapters/fetch'
 import { TITLES, MESSAGES, HTTP_CASES } from './constants'
 
 test('Okapi error kind type can include consumer-defined kinds', () => {

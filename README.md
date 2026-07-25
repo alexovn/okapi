@@ -25,6 +25,8 @@ There are several helper functions for handling errors using [`native fetch`](ht
 - `createFetchErrorMapper`. Convenient wrapper that internally maps errors from `getFetchError` function.
 
 ```ts
+import { createFetchErrorMapper, createFetchResponseErrorMapper } from '@alexovn/okapi/fetch'
+
 const options = {
   i18n: {
     resolveMessage: ({ kind, statusCode }) => {
@@ -66,6 +68,8 @@ There are several helper functions for handling errors using [`axios`](https://g
 
 
 ```ts
+import { createAxiosErrorMapper } from '@alexovn/okapi/axios'
+
 const mapAxiosError = createAxiosErrorMapper({
   i18n: {
     resolveMessage: ({ kind, statusCode }) => {
@@ -95,6 +99,8 @@ There are several helper functions for handling errors using [`ofetch`](https://
 
 
 ```ts
+import { createOfetchErrorMapper } from '@alexovn/okapi/ofetch'
+
 const mapOfetchError = createOfetchErrorMapper({
   i18n: {
     resolveMessage: ({ kind, statusCode }) => {

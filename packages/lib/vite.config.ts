@@ -16,10 +16,15 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(import.meta.dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(import.meta.dirname, 'src/index.ts'),
+        fetch: resolve(import.meta.dirname, 'src/adapters/fetch.ts'),
+        axios: resolve(import.meta.dirname, 'src/adapters/axios.ts'),
+        ofetch: resolve(import.meta.dirname, 'src/adapters/ofetch.ts'),
+      },
       formats: ['es'],
       name: 'okapi',
-      fileName: 'okapi',
+      fileName: (_, entryName) => `${entryName}.js`,
     },
     rolldownOptions: {
       external: ['axios', 'ofetch'],

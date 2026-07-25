@@ -15,16 +15,32 @@
   },
   "homepage": "https://github.com/alexovn/okapi#readme",
   "keywords": ["api", "errors", "fetch", "ofetch", "axios", "okapi"],
+  "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/okapi.d.ts",
-      "import": "./dist/okapi.js",
-      "default": "./dist/okapi.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./fetch": {
+      "types": "./dist/fetch.d.ts",
+      "import": "./dist/fetch.js",
+      "default": "./dist/fetch.js"
+    },
+    "./axios": {
+      "types": "./dist/axios.d.ts",
+      "import": "./dist/axios.js",
+      "default": "./dist/axios.js"
+    },
+    "./ofetch": {
+      "types": "./dist/ofetch.d.ts",
+      "import": "./dist/ofetch.js",
+      "default": "./dist/ofetch.js"
     }
   },
-  "main": "./dist/okapi.js",
-  "module": "./dist/okapi.js",
-  "types": "./dist/okapi.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
     "build": "tsc && vite build",

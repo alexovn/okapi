@@ -1,4 +1,4 @@
-import { createAxiosErrorMapper } from '@alexovn/okapi'
+import { createAxiosErrorMapper } from '@alexovn/okapi/axios'
 import axios from 'axios'
 import { useI18n } from 'vue-i18n'
 

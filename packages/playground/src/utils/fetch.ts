@@ -1,4 +1,4 @@
-import { createFetchErrorMapper, createFetchResponseErrorMapper } from '@alexovn/okapi'
+import { createFetchErrorMapper, createFetchResponseErrorMapper } from '@alexovn/okapi/fetch'
 import { useI18n } from 'vue-i18n'
 
 export function useFetch() {
