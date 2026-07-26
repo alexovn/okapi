@@ -6,14 +6,17 @@ import {
   mapOkapiError,
   normalizeOkapiError,
 } from '../core/okapiError'
-import type { OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/main'
+import type { ApiValidationErrors, OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/main'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 
-export function getOfetchError<TCustomKind extends string = never>(
+export function getOfetchError<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+>(
   error: unknown,
-  options?: OkapiErrorAdapterOptions<TCustomKind>,
-): OkapiError<TCustomKind> {
+  options?: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors>,
+): OkapiError<TCustomKind, TValidationErrors> {
   if (!(error instanceof FetchError)) {
     return normalizeOkapiError(error, options)
   }
@@ -32,8 +35,11 @@ export function getOfetchError<TCustomKind extends string = never>(
   return OkapiError.getNetworkError(error, options)
 }
 
-export function createOfetchErrorMapper<TCustomKind extends string = never>(
-  options: OkapiErrorAdapterOptions<TCustomKind> = {},
-): OkapiErrorMapper<TCustomKind> {
+export function createOfetchErrorMapper<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+>(
+  options: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors> = {},
+): OkapiErrorMapper<TCustomKind, TValidationErrors> {
   return (error) => mapOkapiError(getOfetchError(error, options), options)
 }

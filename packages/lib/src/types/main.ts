@@ -7,9 +7,9 @@ export interface ApiSuccessResponse<T> {
   data: T
 }
 
-export interface ApiErrorResponse {
+export interface ApiErrorResponse<TValidationErrors = ApiValidationErrors> {
   message: string
-  errors?: ApiValidationErrors
+  errors?: TValidationErrors
 }
 
 export type DefaultOkapiErrorKind = (typeof OKAPI_ERROR_KIND)[keyof typeof OKAPI_ERROR_KIND]
@@ -20,12 +20,15 @@ export type OkapiErrorType = (typeof OKAPI_ERROR_TYPE)[keyof typeof OKAPI_ERROR_
 
 export type OkapiErrorSource = (typeof OKAPI_ERROR_SOURCE)[keyof typeof OKAPI_ERROR_SOURCE]
 
-export interface MappedOkapiError<TCustomKind extends string = never> {
+export interface MappedOkapiError<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+> {
   type: OkapiErrorType
   title: string
   message: string
-  details: OkapiError<TCustomKind>
-  errors?: ApiValidationErrors
+  details: OkapiError<TCustomKind, TValidationErrors>
+  errors?: TValidationErrors
 }
 
 export type OkapiErrorTitles<TCustomKind extends string = never> = Partial<
@@ -40,21 +43,26 @@ export type OkapiErrorMessages<TCustomKind extends string = never> = Partial<
 
 export type OkapiErrorStatusMessages = Partial<Record<number, string>>
 
-export type OkapiErrorMessageResolver<TCustomKind extends string = never> = (
-  error: OkapiError<TCustomKind>,
-) => string | undefined
+export type OkapiErrorMessageResolver<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+> = (error: OkapiError<TCustomKind, TValidationErrors>) => string | undefined
 
-export type OkapiErrorTitleResolver<TCustomKind extends string = never> = (
-  error: OkapiError<TCustomKind>,
-) => string | undefined
+export type OkapiErrorTitleResolver<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+> = (error: OkapiError<TCustomKind, TValidationErrors>) => string | undefined
 
-export interface OkapiErrorI18nOptions<TCustomKind extends string = never> {
+export interface OkapiErrorI18nOptions<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+> {
   titles?: OkapiErrorTitles<TCustomKind>
   statusTitles?: OkapiErrorStatusTitles
   messages?: OkapiErrorMessages<TCustomKind>
   statusMessages?: OkapiErrorStatusMessages
-  resolveTitle?: OkapiErrorTitleResolver<TCustomKind>
-  resolveMessage?: OkapiErrorMessageResolver<TCustomKind>
+  resolveTitle?: OkapiErrorTitleResolver<TCustomKind, TValidationErrors>
+  resolveMessage?: OkapiErrorMessageResolver<TCustomKind, TValidationErrors>
 }
 
 export interface OkapiErrorKindContext {
@@ -69,22 +77,33 @@ export type OkapiErrorKindResolver<TCustomKind extends string = never> = (
   context: OkapiErrorKindContext,
 ) => OkapiErrorKind<TCustomKind> | undefined
 
-export interface OkapiErrorOptions<TCustomKind extends string = never> {
-  i18n?: OkapiErrorI18nOptions<TCustomKind>
+export type ValidationErrorsParser<TValidationErrors> = (
+  value: unknown,
+) => TValidationErrors | undefined
+
+export interface OkapiErrorOptions<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+> {
+  i18n?: OkapiErrorI18nOptions<TCustomKind, TValidationErrors>
   resolveKind?: OkapiErrorKindResolver<TCustomKind>
+  parseValidationErrors?: ValidationErrorsParser<TValidationErrors>
 }
 
 export interface MapOkapiErrorOptions<
   TCustomKind extends string = never,
-> extends OkapiErrorOptions<TCustomKind> {}
+  TValidationErrors = ApiValidationErrors,
+> extends OkapiErrorOptions<TCustomKind, TValidationErrors> {}
 
 export interface OkapiErrorAdapterOptions<
   TCustomKind extends string = never,
-> extends OkapiErrorOptions<TCustomKind> {}
+  TValidationErrors = ApiValidationErrors,
+> extends OkapiErrorOptions<TCustomKind, TValidationErrors> {}
 
-export type OkapiErrorMapper<TCustomKind extends string = never> = (
-  error: unknown,
-) => MappedOkapiError<TCustomKind>
+export type OkapiErrorMapper<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+> = (error: unknown) => MappedOkapiError<TCustomKind, TValidationErrors>
 
 export interface ApiErrorResponseLike {
   status: number
@@ -92,13 +111,16 @@ export interface ApiErrorResponseLike {
   body?: unknown
 }
 
-export interface OkapiErrorParams<TCustomKind extends string = never> {
+export interface OkapiErrorParams<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+> {
   kind: OkapiErrorKind<TCustomKind>
   message: string
   source?: OkapiErrorSource
   statusCode?: number
   statusText?: string
-  validationErrors?: ApiValidationErrors
+  validationErrors?: TValidationErrors
   raw?: unknown
   cause?: unknown
 }

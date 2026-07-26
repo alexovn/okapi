@@ -237,3 +237,55 @@ const error = new OkapiError<AppErrorKind>({
   message: 'This project has been archived.',
 })
 ```
+
+## Custom Validation Errors
+
+By default, Okapi accepts validation errors shaped as a dictionary of string arrays:
+
+```ts
+type ApiValidationErrors = Record<string, string[]>
+```
+
+Use `parseValidationErrors` when an API returns another shape. The validation errors type is
+unconstrained, so it can be an array, dictionary, nested object, primitive, or a union of several
+formats.
+
+```ts
+import type { OkapiErrorAdapterOptions } from '@alexovn/okapi'
+import { createFetchResponseErrorMapper } from '@alexovn/okapi/fetch'
+
+interface ValidationErrorDetail {
+  code: string
+  message: string
+}
+
+interface ArrayValidationError extends ValidationErrorDetail {
+  field?: string
+  path?: string[]
+}
+
+type AppValidationErrors =
+  | ArrayValidationError[]
+  | Record<string, ValidationErrorDetail>
+
+const options: OkapiErrorAdapterOptions<never, AppValidationErrors> = {
+  parseValidationErrors(value) {
+    return value as AppValidationErrors
+  },
+}
+
+const mapResponseError = createFetchResponseErrorMapper(options)
+const mapped = mapResponseError(response, body)
+
+// AppValidationErrors | undefined
+const errors = mapped.errors
+```
+
+The returned value is available as both `OkapiError.validationErrors` and
+`MappedOkapiError.errors`, with its type preserved. The parser may also normalize the server value
+into a different consumer-facing shape.
+
+Providing `parseValidationErrors` replaces the built-in parser. Return `undefined` when the value
+is not a recognized validation errors shape. If an `errors` property is present but the parser
+rejects it, Okapi treats the response as an HTTP response error instead of an API error. Omitting
+the option preserves the default `Record<string, string[]>` behavior.

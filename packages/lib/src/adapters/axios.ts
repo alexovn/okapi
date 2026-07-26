@@ -7,14 +7,17 @@ import {
   mapOkapiError,
   normalizeOkapiError,
 } from '../core/okapiError'
-import type { OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/main'
+import type { ApiValidationErrors, OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/main'
 
 export type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 
-export function getAxiosError<TCustomKind extends string = never>(
+export function getAxiosError<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+>(
   error: unknown,
-  options?: OkapiErrorAdapterOptions<TCustomKind>,
-): OkapiError<TCustomKind> {
+  options?: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors>,
+): OkapiError<TCustomKind, TValidationErrors> {
   if (!isAxiosError(error)) {
     return normalizeOkapiError(error, options)
   }
@@ -33,8 +36,11 @@ export function getAxiosError<TCustomKind extends string = never>(
   return OkapiError.getNetworkError(error, options)
 }
 
-export function createAxiosErrorMapper<TCustomKind extends string = never>(
-  options: OkapiErrorAdapterOptions<TCustomKind> = {},
-): OkapiErrorMapper<TCustomKind> {
+export function createAxiosErrorMapper<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+>(
+  options: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors> = {},
+): OkapiErrorMapper<TCustomKind, TValidationErrors> {
   return (error) => mapOkapiError(getAxiosError(error, options), options)
 }
