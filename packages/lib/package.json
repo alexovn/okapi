@@ -43,7 +43,7 @@
   "types": "./dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
-    "build": "tsc && vite build",
+    "build": "pnpm test && tsc && vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

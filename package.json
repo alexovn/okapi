@@ -12,7 +12,8 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": "pnpm run lint:fix",
-    "*": "oxfmt --no-error-on-unmatched-pattern"
+    "*": "pnpm run fmt --no-error-on-unmatched-pattern",
+    "packages/lib/**/*.{js,ts}": "pnpm --filter @alexovn/okapi exec vitest related --run"
   },
   "engines": {
     "node": ">=22",
