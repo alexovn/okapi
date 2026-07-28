@@ -2,17 +2,17 @@ import type { STATUS_CODE } from '../../constants'
 import type { OkapiErrorKind } from '../../types/main'
 
 export const EN_OKAPI_ERROR_TITLE = {
-  network: 'Connection problem',
-  abort: 'Request cancelled',
-  unauthorized: 'Authentication required',
-  forbidden: 'Access denied',
-  'not-found': 'Not found',
-  validation: 'Check the form',
+  network: 'Connection Problem',
+  abort: 'Request Cancelled',
+  unauthorized: 'Authentication Required',
+  forbidden: 'Access Denied',
+  'not-found': 'Not Found',
+  validation: 'Validation Error',
   conflict: 'Conflict',
-  'rate-limited': 'Too many requests',
-  business: 'Request failed',
-  server: 'Server error',
-  unexpected: 'Something went wrong',
+  'rate-limited': 'Too Many Requests',
+  business: 'Request Failed',
+  server: 'Server Error',
+  unexpected: 'Unexpected Error',
 } satisfies Record<OkapiErrorKind, string>
 
 export const EN_OKAPI_ERROR_MESSAGE = {
@@ -21,12 +21,12 @@ export const EN_OKAPI_ERROR_MESSAGE = {
   unauthorized: 'Unauthorized',
   forbidden: 'Insufficient access rights to perform this action',
   'not-found': 'Requested resource was not found',
-  validation: 'Data validation error',
+  validation: 'Passed data has issues',
   conflict: 'Request conflicts with the current resource state',
   'rate-limited': 'Too many requests',
   business: 'Business logic error',
   server: 'Server error',
-  unexpected: 'Unexpected error occurred',
+  unexpected: 'Unexpected error',
 } satisfies Record<OkapiErrorKind, string>
 
 export const EN_HTTP_ERROR_TITLE: Partial<Record<number, string>> = {

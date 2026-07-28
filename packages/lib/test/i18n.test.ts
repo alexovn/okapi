@@ -127,7 +127,7 @@ describe('i18n', () => {
       expect(mapResponseError({ status: 418, statusText: "I'm a Teapot" }).title).toBe(
         "I'm a Teapot",
       )
-      expect(mapResponseError({ status: 418 }).title).toBe('Request failed')
+      expect(mapResponseError({ status: 418 }).title).toBe('Request Failed')
     })
 
     test('mapped errors expose independent built-in titles and messages', () => {
@@ -170,15 +170,15 @@ describe('i18n', () => {
       expect(
         mapOkapiError(OkapiError.getNetworkError(new TypeError(), options), options),
       ).toMatchObject({
-        title: 'Connection problem',
+        title: 'Connection Problem',
         message: 'Check your internet connection and try again.',
       })
 
       expect(
         mapOkapiError(OkapiError.getUnexpectedError(new Error(), options), options),
       ).toMatchObject({
-        title: 'Something went wrong',
-        message: 'An unexpected error occurred. Please try again.',
+        title: 'Unexpected Error',
+        message: 'Unexpected error',
       })
     })
 
@@ -211,13 +211,13 @@ describe('i18n', () => {
       }
 
       expect(mapOkapiError(OkapiError.getNetworkError(new TypeError()), options)).toMatchObject({
-        title: 'Connection problem',
+        title: 'Connection Problem',
         message: 'Check your internet connection and try again.',
       })
 
       expect(mapOkapiError(OkapiError.getUnexpectedError(new Error()), options)).toMatchObject({
-        title: 'Something went wrong',
-        message: 'An unexpected error occurred. Please try again.',
+        title: 'Unexpected Error',
+        message: 'Unexpected error',
       })
     })
   })

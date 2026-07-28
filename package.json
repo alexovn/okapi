@@ -4,6 +4,7 @@
   "scripts": {
     "build:lib": "pnpm --filter @alexovn/okapi build",
     "dev:playground": "pnpm --filter @alexovn/okapi-playground dev",
+    "test": "pnpm --filter @alexovn/okapi test",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
