@@ -163,18 +163,6 @@ function createApiResponseError<TCustomKind extends string, TValidationErrors>(
   })
 }
 
-export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
-  if (!isApiErrorResponseEnvelope(value)) {
-    return false
-  }
-
-  if ('errors' in value && value.errors !== undefined) {
-    return isValidationErrors(value.errors)
-  }
-
-  return true
-}
-
 function parseApiErrorResponse<TValidationErrors>(
   value: unknown,
   parser?: ValidationErrorsParser<TValidationErrors>,
