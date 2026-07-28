@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "private": false,
-  "description": "An API errors handling library",
+  "description": "A library for handling API and HTTP errors with ease.",
   "author": "Nikita Aleksov (https://github.com/alexovn/)",
   "license": "MIT",
   "repository": {
@@ -14,7 +14,15 @@
     "url": "https://github.com/alexovn/okapi/issues"
   },
   "homepage": "https://github.com/alexovn/okapi#readme",
-  "keywords": ["api", "errors", "fetch", "ofetch", "axios", "okapi"],
+  "keywords": [
+    "okapi",
+    "api",
+    "http",
+    "errors",
+    "fetch",
+    "ofetch",
+    "axios"
+  ],
   "sideEffects": false,
   "exports": {
     ".": {

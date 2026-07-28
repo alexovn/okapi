@@ -1,6 +1,8 @@
+![okapi banner](./.github/assets/okapi-banner.jpg)
+
 # OKAPI
 
-A service for handling HTTP and API errors without unnecessary overhead.
+A library for handling API and HTTP errors with ease.
 
 ## Features
 
@@ -9,15 +11,78 @@ A service for handling HTTP and API errors without unnecessary overhead.
 - i18n support
 - Built-in adapters for popular fetching libraries (axios, ofetch etc.)
 
+## Getting Started
+
+### Installation
+
+```shell
+npm install @alexovn/okapi
+```
+
+## Usage
+
+The core library logic is concern in `OkapiError` class that handles errors and returns structured info. It is surrounded by helper functions that do a lot of internal work to process data and to pass it for further implementation.
+
+### `createApiErrorFromResponse`
+
+Creates an `OkapiError` from a status and parsed response body.
+
+```ts
+import { createApiErrorFromResponse } from '@alexovn/okapi'
+
+const error = createApiErrorFromResponse({
+  status: 422,
+  body: {
+    message: 'Invalid input',
+    errors: { email: ['Required'] }
+  },
+})
+
+console.log(error.kind) // 'validation'
+console.log(error.source) // 'api'
+console.log(error.statusCode) // 422
+console.log(error.message) // 'Invalid input'
+console.log(error.validationErrors) // { email: ['Required'] }
+```
+
+### `normalizeOkapiError`
+
+Converts an unknown thrown value to an `OkapiError`, preserving existing `OkapiError` instances.
+
+```ts
+import { normalizeOkapiError } from '@alexovn/okapi'
+
+try {
+  await save()
+} catch (error) {
+  throw normalizeOkapiError(error) // OkapiError
+}
+```
+
+### `mapOkapiError`
+
+Converts an unknown error to a presentation-friendly object with `type`, `title`, `message`, and `details`. It uses `normalizeOkapiError` function under the hood.
+
+```ts
+import { mapOkapiError } from '@alexovn/okapi'
+
+const mapped = mapOkapiError(new Error('Failed'))
+
+console.log(mapped.type) // 'unexpected'
+console.log(mapped.title) // 'Something went wrong'
+console.log(mapped.message) // 'Unexpected error occurred'
+console.log(mapped.details) // OkapiError
+```
+
 ## Fetch Adapters
 
-When you fetch a data it's necessary to get right error details that have its own specificity. Adapters can help you to do it with ease.
+If you want to just deep dive into work, than you should take a look at built-in fetch adapters. Every adapter is just a tiny wrapper around library functions, but they hold everything that you need to handle errors right way.
 
-Every adapter is just a tiny wrapper around library functions, so if you have a specific case, you can create adapter yourself.
+Have a specific case? No problem. You can create adapter yourself!
 
 ### Native Fetch
 
-There are several helper functions for handling errors using [`native fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch):
+Helper functions for handling errors using [`native fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch):
 
 - `getFetchResponseError`. Catches errors when `response.ok` is `false`.
 - `getFetchError`. Catches all kind of errors.
@@ -61,7 +126,7 @@ export async function fetchGet(url, options) {
 
 ### Axios
 
-There are several helper functions for handling errors using [`axios`](https://github.com/axios/axios):
+Helper functions for handling errors using [`axios`](https://github.com/axios/axios):
 
 - `getAxiosError`. Catches all kind of errors.
 - `createAxiosErrorMapper`. Convenient wrapper that internally maps errors from `getAxiosError` function.
@@ -92,7 +157,7 @@ export async function axiosGet(url) {
 
 ### Ofetch
 
-There are several helper functions for handling errors using [`ofetch`](https://github.com/unjs/ofetch):
+Helper functions for handling errors using [`ofetch`](https://github.com/unjs/ofetch):
 
 - `getOfetchError`. Catches all kind of errors.
 - `createOfetchErrorMapper`. Convenient wrapper that internally maps errors from `getOfetchError` function.
@@ -277,7 +342,6 @@ const options: OkapiErrorAdapterOptions<never, AppValidationErrors> = {
 const mapResponseError = createFetchResponseErrorMapper(options)
 const mapped = mapResponseError(response, body)
 
-// AppValidationErrors | undefined
 const errors = mapped.errors
 ```
 
@@ -289,3 +353,13 @@ Providing `parseValidationErrors` replaces the built-in parser. Return `undefine
 is not a recognized validation errors shape. If an `errors` property is present but the parser
 rejects it, Okapi treats the response as an HTTP response error instead of an API error. Omitting
 the option preserves the default `Record<string, string[]>` behavior.
+
+## Credits
+
+A library has been inspired by article ["API Error Handling Demystified: Don’t Just Fetch — Handle in JS & TS"](https://medium.com/@tanguyfab/api-error-handling-demystified-dont-just-fetch-handle-in-js-ts-7938ee22afb9) by [Tanguy Fabien](https://github.com/fabien-tanguy).
+
+## License
+
+Made with ❤️
+
+Published under the [MIT license](https://github.com/alexovn/okapi/LICENSE).
