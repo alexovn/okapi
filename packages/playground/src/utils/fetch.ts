@@ -24,7 +24,15 @@ export function useFetch() {
     }
 
     if (!response.ok) {
-      throw mapFetchResponseError(response)
+      let body: unknown
+
+      try {
+        body = await response.json()
+      } catch {
+        // Empty or non-JSON response.
+      }
+
+      throw mapFetchResponseError(response, body)
     }
 
     return (await response.json()) as T
