@@ -51,10 +51,11 @@
   "types": "./dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
-    "build": "pnpm test && tsc && vite build",
+    "build": "tsc && vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prepack": "node ../../scripts/copy-publish-files.mjs"
+    "prepack": "node ../../scripts/copy-publish-files.mjs && pnpm build",
+    "prepublishOnly": "pnpm --workspace-root lint packages/lib && pnpm test"
   },
   "peerDependencies": {
     "axios": "^1.18.1",
