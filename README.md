@@ -479,9 +479,15 @@ is not a recognized validation-error shape. If an `errors` property is present b
 rejects it, Okapi treats the response as an HTTP response error instead of an API error. Omitting
 the option preserves the default `Record<string, string[]>` behavior.
 
-## Credits
+## Development
 
-This library was inspired by
+- Clone this repository
+- Enable Corepack using `corepack enable`
+- Install dependencies using `pnpm install`
+
+## Inspirations
+
+This library was inspired by article
 ["API Error Handling Demystified: Don’t Just Fetch — Handle in JS & TS"](https://medium.com/@tanguyfab/api-error-handling-demystified-dont-just-fetch-handle-in-js-ts-7938ee22afb9)
 by [Tanguy Fabien](https://github.com/fabien-tanguy).
 
