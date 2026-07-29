@@ -53,7 +53,8 @@
   "scripts": {
     "build": "pnpm test && tsc && vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepack": "node ../../scripts/copy-publish-files.mjs"
   },
   "peerDependencies": {
     "axios": "^1.18.1",

@@ -25,3 +25,7 @@ index.db
 *.sln
 *.sw?
 *.tgz
+
+# Library
+*/**/lib/README.md
+*/**/lib/LICENSE
