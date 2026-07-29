@@ -1,10 +1,8 @@
 {
-  "name": "@alexovn/okapi-workspace",
+  "name": "@alexovn/okapi-root",
   "private": true,
   "scripts": {
-    "build:lib": "pnpm --filter @alexovn/okapi build",
-    "dev:playground": "pnpm --filter @alexovn/okapi-playground dev",
-    "test": "pnpm --filter @alexovn/okapi test",
+    "pg:dev": "pnpm --filter @alexovn/okapi-playground dev",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
