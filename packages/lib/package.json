@@ -54,7 +54,7 @@
     "build": "tsc && vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prepack": "node ../../scripts/copy-publish-files.mjs && pnpm build",
+    "prepack": "pnpm --workspace-root lint packages/lib && pnpm test && node ../../scripts/copy-publish-files.mjs && pnpm build",
     "prepublishOnly": "pnpm --workspace-root lint packages/lib && pnpm test"
   },
   "peerDependencies": {
