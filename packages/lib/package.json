@@ -1,7 +1,7 @@
 {
   "name": "@alexovn/okapi",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "description": "A library for handling API and HTTP errors with ease.",
   "author": "Nikita Aleksov (https://github.com/alexovn/)",
@@ -49,7 +49,9 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc && vite build",
     "test": "vitest run",
@@ -62,8 +64,12 @@
     "ofetch": "^1.5.1"
   },
   "peerDependenciesMeta": {
-    "axios": { "optional": true },
-    "ofetch": { "optional": true }
+    "axios": {
+      "optional": true
+    },
+    "ofetch": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.52.0",
