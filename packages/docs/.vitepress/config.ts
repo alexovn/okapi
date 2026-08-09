@@ -58,7 +58,28 @@ export default defineConfig({
       },
       {
         text: 'Core concepts',
-        items: [{ text: 'API', link: '/api' }],
+        items: [
+          { text: 'API', link: '/api' },
+          {
+            text: 'Adapters',
+            link: '/adapters',
+            items: [
+              {
+                text: 'Native Fetch',
+                link: '/adapters/native-fetch',
+              },
+              {
+                text: 'Axios',
+                link: '/adapters/axios',
+              },
+              {
+                text: 'ofetch',
+                link: '/adapters/ofetch',
+              },
+            ],
+            collapsed: false,
+          },
+        ],
         collapsed: false,
       },
       // {
