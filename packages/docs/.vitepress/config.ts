@@ -42,6 +42,10 @@ export default defineConfig({
           { text: 'Introduction', link: '/introduction' },
           { text: 'Quick Start', link: '/quick-start' },
           { text: 'API', link: '/api' },
+          { text: 'i18n', link: '/i18n' },
+          { text: 'Error Kinds', link: '/error-kinds' },
+          { text: 'Types', link: '/types' },
+          { text: 'Adapters', link: '/adapters' },
           // { text: 'Examples', link: '/examples', activeMatch: '/examples' },
         ],
       },
@@ -60,24 +64,27 @@ export default defineConfig({
         text: 'Core concepts',
         items: [
           { text: 'API', link: '/api' },
+          { text: 'i18n', link: '/i18n' },
+          { text: 'Error Kinds', link: '/error-kinds' },
+          { text: 'Types', link: '/types' },
+        ],
+        collapsed: false,
+      },
+      {
+        text: 'Adapters',
+        link: '/adapters',
+        items: [
           {
-            text: 'Adapters',
-            link: '/adapters',
-            items: [
-              {
-                text: 'Native Fetch',
-                link: '/adapters/native-fetch',
-              },
-              {
-                text: 'Axios',
-                link: '/adapters/axios',
-              },
-              {
-                text: 'ofetch',
-                link: '/adapters/ofetch',
-              },
-            ],
-            collapsed: false,
+            text: 'Native Fetch',
+            link: '/adapters/native-fetch',
+          },
+          {
+            text: 'Axios',
+            link: '/adapters/axios',
+          },
+          {
+            text: 'ofetch',
+            link: '/adapters/ofetch',
           },
         ],
         collapsed: false,

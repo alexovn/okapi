@@ -26,6 +26,36 @@ A core class that extends the native `Error` class with useful information and b
 - `isNetworkError`: a getter that checks if an error is a network error
 - `isValidationError`: a getter that checks if an error is a validation error
 
+### `source`
+
+Identifies where the error originated. Compare it with the values from `OKAPI_ERROR_SOURCE`.
+
+| Constant | Value | Meaning |
+| --- | --- | --- |
+| `API` | `api` | Recognized API error response |
+| `HTTP` | `http` | HTTP response without a recognized API error body |
+| `NETWORK` | `network` | Request failed or was aborted |
+| `UNEXPECTED` | `unexpected` | Unrecognized thrown value |
+| `CUSTOM` | `custom` | `OkapiError` created directly by the application |
+
+```ts
+const OKAPI_ERROR_SOURCE = {
+  API: 'api',
+  HTTP: 'http',
+  NETWORK: 'network',
+  UNEXPECTED: 'unexpected',
+  CUSTOM: 'custom',
+} as const
+```
+
+```ts
+import { OKAPI_ERROR_SOURCE } from '@alexovn/okapi'
+
+if (error.source === OKAPI_ERROR_SOURCE.NETWORK) {
+  showOfflineState()
+}
+```
+
 ### `constructor`
 
 Creates an `OkapiError` directly from an error kind, message, and optional error details.
