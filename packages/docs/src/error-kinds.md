@@ -42,7 +42,7 @@ Okapi assigns kinds from the error source and, for API or HTTP responses, the st
 | `forbidden` | `business` | Status `403` |
 | `not-found` | `business` | Status `404` |
 | `conflict` | `business` | Status `409` |
-| `validation` | `validation` | Status `422`, or a recognized validation payload unless the status is `401`, `403`, `404`, or `409` |
+| `validation` | `validation` | Status `422`, or a [recognized validation payload](/custom-validation-errors) unless the status is `401`, `403`, `404`, or `409` |
 | `rate-limited` | `business` | Status `429` |
 | `server` | `server` | Status `500` or greater |
 | `business` | `business` | Other API or HTTP response |

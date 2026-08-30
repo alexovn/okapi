@@ -5,6 +5,7 @@ specific feature are documented with that feature:
 
 - [i18n types](/i18n#types)
 - [error kind types](/error-kinds#types)
+- [custom validation errors](/custom-validation-errors)
 
 ## API responses
 
@@ -133,6 +134,8 @@ type ValidationErrorsParser<TValidationErrors> = (
 ) => TValidationErrors | undefined
 ```
 
+See [Custom Validation Errors](/custom-validation-errors) for parser behavior and examples.
+
 ## Configuration
 
 ### `OkapiErrorOptions`
@@ -140,7 +143,7 @@ type ValidationErrorsParser<TValidationErrors> = (
 Shared options accepted by the core API and adapter mapper factories. Use `resolveKind` to
 [customize error classification](/error-kinds#custom-error-kinds), `i18n` to
 [customize presentation text](/i18n), and `parseValidationErrors` when your API uses a different
-validation-error shape.
+[validation-error shape](/custom-validation-errors).
 
 ```ts
 interface OkapiErrorOptions<

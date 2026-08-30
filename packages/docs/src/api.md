@@ -19,7 +19,7 @@ A core class that extends the native `Error` class with useful information and b
 - `source`: where the error originated
 - `statusCode`: HTTP status code
 - `statusText`: HTTP status text
-- `validationErrors`: parsed validation details
+- `validationErrors`: parsed validation details; see [Custom Validation Errors](/custom-validation-errors)
 - `raw`: the original API or HTTP response body
 - `rawMessage`: the original message from a recognized API response
 - `cause`: the original thrown value
@@ -185,7 +185,8 @@ OkapiError.getUnexpectedError<
 
 Creates an `OkapiError` from an HTTP response. A response body with a string `message` and either no
 validation payload or recognized validation errors becomes an API-sourced error; otherwise, it
-becomes an HTTP-sourced error.
+becomes an HTTP-sourced error. Use `parseValidationErrors` for
+[custom validation-error shapes](/custom-validation-errors).
 
 - Type:
 
@@ -202,7 +203,8 @@ function createApiErrorFromResponse<
 ## `mapOkapiError`
 
 Normalizes an unknown error and maps it to a presentation-friendly object containing a type, title,
-message, and the normalized `OkapiError`. Validation errors are also exposed as `errors`.
+message, and the normalized `OkapiError`. Validation errors are also exposed as `errors`, including
+[custom validation-error shapes](/custom-validation-errors).
 
 - Type:
 
