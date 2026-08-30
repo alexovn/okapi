@@ -1,38 +1,60 @@
 name: release
+
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    types:
-      - closed
-    branches:
-      - main
-  workflow_dispatch: null
+    types: [closed]
+    branches: [main]
+  # merged release PRs, publish reruns, and prereleases all arrive here
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: 'Cut a prerelease instead of a normal release, e.g. `beta`, `rc`, or `0`'
+        required: false
+        default: ''
+      npm-tag:
+        description: 'npm dist-tag to publish to. Set by uppt/release for maintenance lines; leave blank otherwise'
+        required: false
+        default: ''
+
 permissions: {}
 
 jobs:
+  # open or update a draft release PR from conventional commits
   pr:
-    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}',
-      github.event.repository.default_branch)
+    if: |
+      !github.event.repository.fork
+      && (
+        (
+          github.event_name == 'push'
+          && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        ) || (
+          github.event_name == 'workflow_dispatch'
+          && !startsWith(github.ref, 'refs/tags/')
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: danielroe/uppt/pr@3a4fd445ce266b91dd73ced7ae8140cc0f9fc19c
+      - uses: danielroe/uppt/pr@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: ${{ inputs.prerelease }}
           packages: |
             packages/*
             !packages/playground
 
+  # release PR merged: tag it, cut a GitHub release, dispatch the publish run
   release:
     if: |
       github.event_name == 'pull_request'
       && github.event.pull_request.merged == true
       && startsWith(github.event.pull_request.head.ref, 'release/v')
       && github.event.pull_request.head.repo.full_name == github.repository
+      && !github.event.repository.fork
     runs-on: ubuntu-latest
     concurrency:
       group: release-${{ github.event.pull_request.number }}
@@ -41,16 +63,16 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: danielroe/uppt/release@3a4fd445ce266b91dd73ced7ae8140cc0f9fc19c
+      - uses: danielroe/uppt/release@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           packages: |
             packages/*
             !packages/playground
 
+  # the chained dispatch lands here on the vX.Y.Z tag; build the tarball(s)
   pack:
-    if: github.event_name == 'workflow_dispatch' && startsWith(github.ref,
-      'refs/tags/v')
+    if: github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     concurrency:
       group: pack-${{ github.ref }}
@@ -60,12 +82,13 @@ jobs:
       files: ${{ steps.pack.outputs.files }}
     steps:
       - id: pack
-        uses: danielroe/uppt/pack@3a4fd445ce266b91dd73ced7ae8140cc0f9fc19c
+        uses: danielroe/uppt/pack@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
         with:
           packages: |
             packages/*
             !packages/playground
 
+  # stage the prebuilt tarball(s) to npm via OIDC
   publish:
     if: |
       github.event_name == 'workflow_dispatch'
@@ -78,8 +101,9 @@ jobs:
       cancel-in-progress: false
     permissions:
       id-token: write
+    environment: npm
     steps:
-      - uses: danielroe/uppt/publish@3a4fd445ce266b91dd73ced7ae8140cc0f9fc19c
+      - uses: danielroe/uppt/publish@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
         with:
           files: ${{ needs.pack.outputs.files }}
-    environment: npm
+          npm-tag: ${{ inputs.npm-tag }}
