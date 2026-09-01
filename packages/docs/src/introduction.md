@@ -11,7 +11,7 @@ Every request has several stages. It can be successful if everything goes right,
 It has many features that will make API and HTTP errors handling easy:
 
 - **Framework agnostic**: Use Vue, React, Angular or any kind of framework you like.
-- **Fully typed**: Strong types give you enough info how to use a library in a better way.
+- **Type safe**: Strong types give you enough info how to use a library in a better way.
 - **i18n support**: ¿Ha surgido algún problema? Users will know about errors in their language.
 - **Fetch adapters**: Go ahead and handle errors with a fetching approach you like the most. Didn't find yours? Just create it!
 - **Customizable**: Not enough built-in error kinds? Have a special errors validation case? Don't worry! This library was build to help you to follow your own way.
