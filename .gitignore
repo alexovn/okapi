@@ -29,3 +29,9 @@ index.db
 # Library
 */**/lib/README.md
 */**/lib/LICENSE
+
+# VitePress
+packages/docs/.vitepress/dist
+packages/docs/.vitepress/cache
+packages/docs/.vitepress/assets-cache
+packages/docs/.vitepress/.temp
