@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 
-const base = process.env.VITEPRESS_BASE ?? '/okapi/'
+const base = process.env.DOCS_BASE ?? '/okapi/'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({

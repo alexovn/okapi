@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DOCS_BASE: ${{ vars.DOCS_BASE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
