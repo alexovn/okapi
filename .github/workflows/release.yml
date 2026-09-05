@@ -44,8 +44,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ inputs.prerelease }}
           packages: |
-            packages/*
-            !packages/playground
+            packages/lib
 
   # release PR merged: tag it, cut a GitHub release, dispatch the publish run
   release:
@@ -67,8 +66,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           packages: |
-            packages/*
-            !packages/playground
+            packages/lib
 
   # the chained dispatch lands here on the vX.Y.Z tag; build the tarball(s)
   pack:
@@ -85,8 +83,7 @@ jobs:
         uses: danielroe/uppt/pack@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
         with:
           packages: |
-            packages/*
-            !packages/playground
+            packages/lib
 
   # stage the prebuilt tarball(s) to npm via OIDC
   publish:
