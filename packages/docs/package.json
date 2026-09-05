@@ -1,10 +1,8 @@
 {
   "name": "@alexovn/okapi-docs",
+  "private": true,
   "type": "module",
-  "private": "true",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
