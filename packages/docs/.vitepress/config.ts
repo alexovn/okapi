@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
+import llmstxt from 'vitepress-plugin-llms'
+import { copyOrDownloadAsMarkdownButtons } from 'vitepress-plugin-llms'
 
 const base = process.env.DOCS_BASE ?? '/okapi/'
 
@@ -16,10 +18,11 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.use(groupIconMdPlugin)
+      md.use(copyOrDownloadAsMarkdownButtons)
     },
   },
   vite: {
-    plugins: [groupIconVitePlugin()],
+    plugins: [groupIconVitePlugin(), llmstxt()],
   },
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config

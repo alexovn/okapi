@@ -8,9 +8,11 @@
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {
-    "vitepress": "2.0.0-alpha.18"
+    "vitepress": "2.0.0-alpha.18",
+    "vitepress-plugin-llms": "^1.14.0"
   },
   "dependencies": {
+    "@types/node": "^26.5.1",
     "vitepress-plugin-group-icons": "^1.7.6"
   }
 }
