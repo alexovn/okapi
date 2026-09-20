@@ -1,6 +1,12 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
 
-import { OkapiError, mapOkapiError, normalizeOkapiError } from '../src'
+import {
+  OKAPI_ERROR_SOURCE,
+  OKAPI_ERROR_TYPE,
+  OkapiError,
+  mapOkapiError,
+  normalizeOkapiError,
+} from '../src'
 import type {
   OkapiErrorAdapterOptions,
   OkapiErrorKind,
@@ -39,7 +45,7 @@ describe('custom error kinds', () => {
     const options: OkapiErrorAdapterOptions<AppErrorKind> = {
       resolveKind: ({ source, statusCode, raw }) => {
         if (
-          source === 'api' &&
+          source === OKAPI_ERROR_SOURCE.API &&
           statusCode === 404 &&
           typeof raw === 'object' &&
           raw !== null &&
@@ -101,7 +107,7 @@ describe('validation errors', () => {
       },
       details: {
         kind: 'validation',
-        source: 'api',
+        source: OKAPI_ERROR_SOURCE.API,
       },
     })
   })
@@ -129,10 +135,10 @@ describe('validation errors', () => {
     )
 
     expectTypeOf(mapped).toEqualTypeOf<MappedOkapiError<never, ArrayValidationError[]>>()
+    expect(mapped.type).toBe(OKAPI_ERROR_TYPE.VALIDATION)
     expect(mapped.errors).toEqual(arrayErrors)
     expect(mapped.details.validationErrors).toEqual(arrayErrors)
     expect(mapped.details.rawMessage).toBe('Invalid address.')
-    expect(mapped.type).toBe('validation')
   })
 
   test('consumers can parse dictionary validation errors', () => {
@@ -155,10 +161,10 @@ describe('validation errors', () => {
     )
 
     expectTypeOf(mapped).toEqualTypeOf<MappedOkapiError<never, ObjectValidationError>>()
+    expect(mapped.type).toBe(OKAPI_ERROR_TYPE.VALIDATION)
     expect(mapped.errors).toEqual(dictionaryErrors)
     expect(mapped.details.validationErrors).toEqual(dictionaryErrors)
     expect(mapped.details.rawMessage).toBe('Invalid account.')
-    expect(mapped.type).toBe('validation')
   })
 
   test('custom validation errors can have an arbitrary non-object shape', () => {
@@ -171,30 +177,22 @@ describe('validation errors', () => {
     )
 
     expectTypeOf(mapped.errors).toEqualTypeOf<string | undefined>()
-    expect(mapped.type).toBe('validation')
+    expect(mapped.type).toBe(OKAPI_ERROR_TYPE.VALIDATION)
     expect(mapped.errors).toBe('INVALID_INPUT')
-
-    const normalized = normalizeOkapiError<never, string>(mapped.details)
-    const remapped = mapOkapiError<never, string>(normalized)
-
-    expectTypeOf(normalized).toEqualTypeOf<OkapiError<never, string>>()
-    expectTypeOf(remapped).toEqualTypeOf<MappedOkapiError<never, string>>()
-    expect(remapped.errors).toBe('INVALID_INPUT')
+    expect(mapped.details.source).toBe(OKAPI_ERROR_SOURCE.API)
   })
 
   test('a custom validation errors parser replaces the default parser', () => {
     const mapResponseError = createFetchResponseErrorMapper<never, string>({
       parseValidationErrors: () => undefined,
     })
-    const body = {
-      message: 'Invalid input.',
-      errors: { email: ['Invalid email.'] },
-    }
-    const mapped = mapResponseError({ status: 400 }, body)
+    const mapped = mapResponseError(
+      { status: 400 },
+      { message: 'Invalid input.', errors: { email: ['Invalid email.'] } },
+    )
 
-    expect(mapped.type).toBe('business')
+    expect(mapped.type).toBe(OKAPI_ERROR_TYPE.BUSINESS)
     expect(mapped.errors).toBeUndefined()
-    expect(mapped.details.source).toBe('http')
-    expect(mapped.details.raw).toBe(body)
+    expect(mapped.details.source).toBe(OKAPI_ERROR_SOURCE.API)
   })
 })

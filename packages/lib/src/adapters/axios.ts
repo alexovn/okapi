@@ -3,7 +3,7 @@ import type { AxiosError } from 'axios'
 
 import {
   OkapiError,
-  createApiErrorFromResponse,
+  createOkapiErrorFromResponse,
   mapOkapiError,
   normalizeOkapiError,
 } from '../core/okapiError'
@@ -23,7 +23,7 @@ export function getAxiosError<
   }
 
   if (typeof error.response?.status === 'number') {
-    return createApiErrorFromResponse(
+    return createOkapiErrorFromResponse(
       {
         status: error.response.status,
         statusText: error.response.statusText,

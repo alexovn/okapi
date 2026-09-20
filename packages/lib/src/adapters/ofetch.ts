@@ -2,7 +2,7 @@ import { FetchError } from 'ofetch'
 
 import {
   OkapiError,
-  createApiErrorFromResponse,
+  createOkapiErrorFromResponse,
   mapOkapiError,
   normalizeOkapiError,
 } from '../core/okapiError'
@@ -22,7 +22,7 @@ export function getOfetchError<
   }
 
   if (error.response) {
-    return createApiErrorFromResponse(
+    return createOkapiErrorFromResponse(
       {
         status: error.response.status,
         statusText: error.response.statusText,

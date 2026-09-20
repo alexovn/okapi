@@ -124,3 +124,20 @@ export interface OkapiErrorParams<
   raw?: unknown
   cause?: unknown
 }
+
+export interface ParsedValidationErrors<TValidationErrors> {
+  source: typeof OKAPI_ERROR_SOURCE.API
+  raw: ApiErrorResponse<unknown>
+  validationErrors?: TValidationErrors
+}
+
+export type ParsedOkapiErrorResponse<TValidationErrors> =
+  | {
+      source: typeof OKAPI_ERROR_SOURCE.API
+      raw: ApiErrorResponse<unknown>
+      validationErrors?: TValidationErrors
+    }
+  | {
+      source: typeof OKAPI_ERROR_SOURCE.HTTP
+      raw: unknown
+    }

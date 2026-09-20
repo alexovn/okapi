@@ -181,17 +181,19 @@ OkapiError.getUnexpectedError<
 ): OkapiError<TCustomKind, TValidationErrors>
 ```
 
-## `createApiErrorFromResponse`
+## `createOkapiErrorFromResponse`
 
-Creates an `OkapiError` from an HTTP response. A response body with a string `message` and either no
-validation payload or recognized validation errors becomes an API-sourced error; otherwise, it
-becomes an HTTP-sourced error. Use `parseValidationErrors` for
+Creates an `OkapiError` from an HTTP response. A response body with a string `message` becomes an
+API-sourced error. When it contains an `errors` property, Okapi parses it with
+`parseValidationErrors`; if parsing returns `undefined`, the error remains API-sourced but has no
+parsed validation errors. Bodies without a string `message` become HTTP-sourced errors. Use
+`parseValidationErrors` for
 [custom validation-error shapes](/custom-validation-errors).
 
 - Type:
 
 ```ts
-function createApiErrorFromResponse<
+function createOkapiErrorFromResponse<
   TCustomKind extends string = never,
   TValidationErrors = ApiValidationErrors,
 >(
