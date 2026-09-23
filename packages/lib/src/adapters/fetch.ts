@@ -1,6 +1,6 @@
 import {
   OkapiError,
-  createApiErrorFromResponse,
+  createOkapiErrorFromResponse,
   mapOkapiError,
   normalizeOkapiError,
 } from '../core/okapiError'
@@ -36,7 +36,7 @@ export function getFetchResponseError<
   body?: unknown,
   options?: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors>,
 ): OkapiError<TCustomKind, TValidationErrors> {
-  return createApiErrorFromResponse(
+  return createOkapiErrorFromResponse(
     { status: response.status, statusText: response.statusText, body },
     options,
   )

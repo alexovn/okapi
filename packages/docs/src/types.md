@@ -40,7 +40,7 @@ interface ApiErrorResponse<TValidationErrors = ApiValidationErrors> {
 
 ### `ApiErrorResponseLike`
 
-The response data accepted by `createApiErrorFromResponse`.
+The response data accepted by `createOkapiErrorFromResponse`.
 
 ```ts
 interface ApiErrorResponseLike {

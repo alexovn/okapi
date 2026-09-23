@@ -19,6 +19,8 @@ import type {
   MappedOkapiError,
   OkapiErrorType,
   ValidationErrorsParser,
+  ParsedOkapiErrorResponse,
+  ParsedValidationErrors,
 } from '../types/main'
 
 export class OkapiError<
@@ -147,7 +149,12 @@ function createApiResponseError<TCustomKind extends string, TValidationErrors>(
   options: OkapiErrorOptions<TCustomKind, TValidationErrors>,
 ): OkapiError<TCustomKind, TValidationErrors> {
   const kind = resolveOkapiErrorKind(
-    { source: OKAPI_ERROR_SOURCE.API, statusCode, statusText, raw },
+    {
+      source: OKAPI_ERROR_SOURCE.API,
+      statusCode,
+      statusText,
+      raw,
+    },
     options,
     () => getKindFromStatus(statusCode, validationErrors !== undefined),
   )
@@ -163,42 +170,65 @@ function createApiResponseError<TCustomKind extends string, TValidationErrors>(
   })
 }
 
-function parseApiErrorResponse<TValidationErrors>(
+function parseValidationErrors<TValidationErrors>(
+  value: Record<string, unknown> & { message: string },
+  parser?: ValidationErrorsParser<TValidationErrors>,
+): ParsedValidationErrors<TValidationErrors> {
+  let validationErrors
+
+  if (parser) {
+    validationErrors = parser(value.errors)
+  } else {
+    validationErrors = isValidationErrors(value.errors)
+      ? (value.errors as TValidationErrors)
+      : undefined
+  }
+
+  if (validationErrors !== undefined) {
+    return {
+      source: OKAPI_ERROR_SOURCE.API,
+      raw: value,
+      validationErrors,
+    }
+  }
+
+  return {
+    source: OKAPI_ERROR_SOURCE.API,
+    raw: value,
+  }
+}
+
+function parseErrorResponse<TValidationErrors>(
   value: unknown,
   parser?: ValidationErrorsParser<TValidationErrors>,
-):
-  | {
-      raw: ApiErrorResponse<unknown>
-      validationErrors?: TValidationErrors
-    }
-  | undefined {
+): ParsedOkapiErrorResponse<TValidationErrors> {
   if (!isApiErrorResponseEnvelope(value)) {
-    return undefined
+    return {
+      source: OKAPI_ERROR_SOURCE.HTTP,
+      raw: value,
+    }
   }
 
   if (!('errors' in value) || value.errors === undefined) {
-    return { raw: value }
+    return {
+      source: OKAPI_ERROR_SOURCE.API,
+      raw: value,
+    }
   }
 
-  const validationErrors = parser
-    ? parser(value.errors)
-    : isValidationErrors(value.errors)
-      ? (value.errors as TValidationErrors)
-      : undefined
-
-  return validationErrors === undefined ? undefined : { raw: value, validationErrors }
+  return parseValidationErrors(value, parser)
 }
 
-export function createApiErrorFromResponse<
+export function createOkapiErrorFromResponse<
   TCustomKind extends string = never,
   TValidationErrors = ApiValidationErrors,
 >(
   response: ApiErrorResponseLike,
   options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {},
 ): OkapiError<TCustomKind, TValidationErrors> {
-  const parsedResponse = parseApiErrorResponse(response.body, options.parseValidationErrors)
+  const parsedResponse = parseErrorResponse(response.body, options.parseValidationErrors)
 
-  if (parsedResponse) {
+  if (parsedResponse.source === OKAPI_ERROR_SOURCE.API) {
     return createApiResponseError(
       parsedResponse.raw,
       parsedResponse.validationErrors,

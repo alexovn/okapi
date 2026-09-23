@@ -117,10 +117,10 @@ const options: OkapiErrorAdapterOptions<never, FieldErrors> = {
 
 Providing `parseValidationErrors` replaces the built-in parser. Return `undefined` when the value
 is not a recognized validation-error shape. If an `errors` property is present but the parser
-rejects it, Okapi treats the response as an HTTP-sourced error instead of an API-sourced error.
-The HTTP status still participates in kind classification, so a rejected response with status
-`422` still has the `validation` kind but does not expose parsed `errors`.
+rejects it, Okapi keeps the response API-sourced and leaves `validationErrors` unset. The HTTP
+status still participates in kind classification, so a rejected response with status `422` still
+has the `validation` kind but does not expose parsed `errors`.
 
 Omitting the option preserves the default `Record<string, string[]>` behavior. The same option is
-accepted by [`createApiErrorFromResponse`](/api#createapierrorfromresponse) and every
+accepted by [`createOkapiErrorFromResponse`](/api#createokapierrorfromresponse) and every
 [adapter](/adapters/native-fetch) through [`OkapiErrorOptions`](/types#okapierroroptions).
