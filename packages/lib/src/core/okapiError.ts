@@ -103,8 +103,12 @@ export class OkapiError<
   >(
     error: unknown,
     options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {},
+    meta?: { isAbortError?: boolean },
   ): OkapiError<TCustomKind, TValidationErrors> {
-    const defaultKind = isAbortError(error) ? OKAPI_ERROR_KIND.ABORT : OKAPI_ERROR_KIND.NETWORK
+    const defaultKind = isAbortError(error, meta?.isAbortError)
+      ? OKAPI_ERROR_KIND.ABORT
+      : OKAPI_ERROR_KIND.NETWORK
+
     const kind = resolveOkapiErrorKind(
       { source: OKAPI_ERROR_SOURCE.NETWORK, cause: error },
       options,
@@ -274,13 +278,14 @@ export function normalizeOkapiError<
 >(
   error: unknown,
   options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {},
+  meta?: { isAbortError?: boolean },
 ): OkapiError<TCustomKind, TValidationErrors> {
   if (error instanceof OkapiError) {
     return error as OkapiError<TCustomKind, TValidationErrors>
   }
 
-  if (isAbortError(error)) {
-    return OkapiError.getNetworkError(error, options)
+  if (isAbortError(error, meta?.isAbortError)) {
+    return OkapiError.getNetworkError(error, options, { isAbortError: meta?.isAbortError })
   }
 
   return OkapiError.getUnexpectedError(error, options)
@@ -450,7 +455,10 @@ function getDefaultHttpTitle(statusCode?: number, statusText?: string): string |
   return undefined
 }
 
-function isAbortError(error: unknown): boolean {
+function isAbortError(error: unknown, forced = false): boolean {
+  if (forced) {
+    return true
+  }
   return isObject(error) && error.name === 'AbortError'
 }
 

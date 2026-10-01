@@ -32,7 +32,11 @@ export function getOfetchError<
     )
   }
 
-  return OkapiError.getNetworkError(error, options)
+  const cause = error.cause
+  const isAbortError =
+    typeof cause === 'object' && cause !== null && 'name' in cause && cause.name === 'AbortError'
+
+  return OkapiError.getNetworkError(error, options, { isAbortError })
 }
 
 export function createOfetchErrorMapper<

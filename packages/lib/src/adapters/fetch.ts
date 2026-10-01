@@ -28,20 +28,6 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-export function getFetchResponseError<
-  TCustomKind extends string = never,
-  TValidationErrors = ApiValidationErrors,
->(
-  response: FetchResponseLike,
-  body?: unknown,
-  options?: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors>,
-): OkapiError<TCustomKind, TValidationErrors> {
-  return createOkapiErrorFromResponse(
-    { status: response.status, statusText: response.statusText, body },
-    options,
-  )
-}
-
 export function getFetchError<
   TCustomKind extends string = never,
   TValidationErrors = ApiValidationErrors,
@@ -51,12 +37,12 @@ export function getFetchError<
   options?: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors>,
 ): OkapiError<TCustomKind, TValidationErrors> {
   if (isObject(error) && typeof error.status === 'number') {
-    return getFetchResponseError(
+    return createOkapiErrorFromResponse(
       {
         status: error.status,
         statusText: typeof error.statusText === 'string' ? error.statusText : undefined,
+        body: body ?? error.body,
       },
-      body ?? error.body,
       options,
     )
   }
@@ -74,7 +60,18 @@ export function createFetchResponseErrorMapper<
 >(
   options: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors> = {},
 ): FetchResponseErrorMapper<TCustomKind, TValidationErrors> {
-  return (response, body) => mapOkapiError(getFetchResponseError(response, body, options), options)
+  return (response, body) =>
+    mapOkapiError(
+      createOkapiErrorFromResponse(
+        {
+          status: response.status,
+          statusText: response.statusText,
+          body,
+        },
+        options,
+      ),
+      options,
+    )
 }
 
 export function createFetchErrorMapper<

@@ -1,4 +1,4 @@
-import { isAxiosError } from 'axios'
+import { isAxiosError, isCancel } from 'axios'
 import type { AxiosError } from 'axios'
 
 import {
@@ -33,7 +33,7 @@ export function getAxiosError<
     )
   }
 
-  return OkapiError.getNetworkError(error, options)
+  return OkapiError.getNetworkError(error, options, { isAbortError: isCancel(error) })
 }
 
 export function createAxiosErrorMapper<
