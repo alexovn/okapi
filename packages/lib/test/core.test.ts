@@ -202,7 +202,7 @@ describe('validation errors', () => {
 })
 
 describe('aborted request', () => {
-  test('handles an aborted native fetch', async () => {
+  test('handles an aborted native fetch request', async () => {
     const controller = new AbortController()
     controller.abort()
 
