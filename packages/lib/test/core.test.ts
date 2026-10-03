@@ -1,3 +1,5 @@
+import axios from 'axios'
+import { FetchError, ofetch } from 'ofetch'
 import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
@@ -13,7 +15,9 @@ import type {
   DefaultOkapiErrorKind,
   MappedOkapiError,
 } from '../src'
-import { createFetchResponseErrorMapper } from '../src/adapters/fetch'
+import { getAxiosError } from '../src/adapters/axios'
+import { createFetchResponseErrorMapper, getFetchError } from '../src/adapters/fetch'
+import { getOfetchError } from '../src/adapters/ofetch'
 
 describe('custom error kinds', () => {
   test('Okapi error kind type can include consumer-defined kinds', () => {
@@ -194,5 +198,53 @@ describe('validation errors', () => {
     expect(mapped.type).toBe(OKAPI_ERROR_TYPE.BUSINESS)
     expect(mapped.errors).toBeUndefined()
     expect(mapped.details.source).toBe(OKAPI_ERROR_SOURCE.API)
+  })
+})
+
+describe('aborted request', () => {
+  test('handles an aborted native fetch request', async () => {
+    const controller = new AbortController()
+    controller.abort()
+
+    const fetchError = await fetch('data:,ok', { signal: controller.signal }).catch(
+      (error: unknown) => error,
+    )
+
+    const mapped = getFetchError(fetchError)
+    expect(mapped.kind).toBe('abort')
+    expect(mapped.source).toBe('network')
+    expect(mapped.cause).toBe(fetchError)
+  })
+
+  test('handles an aborted Axios request', async () => {
+    const controller = new AbortController()
+    controller.abort()
+
+    const response = await axios
+      .get('data:,ok', { signal: controller.signal })
+      .catch((error: unknown) => error)
+
+    const mapped = getAxiosError(response)
+    expect(mapped.kind).toBe('abort')
+    expect(mapped.source).toBe('network')
+    expect(mapped.cause).toBe(response)
+  })
+
+  test('handles an aborted ofetch request', async () => {
+    const controller = new AbortController()
+    controller.abort()
+
+    const fetchError = await ofetch('data:,ok', {
+      signal: controller.signal,
+      retry: false,
+    }).catch((error: unknown) => error)
+
+    expect(fetchError).toBeInstanceOf(FetchError)
+    expect((fetchError as FetchError).cause).toMatchObject({ name: 'AbortError' })
+
+    const mapped = getOfetchError(fetchError)
+    expect(mapped.kind).toBe('abort')
+    expect(mapped.source).toBe('network')
+    expect(mapped.cause).toBe(fetchError)
   })
 })

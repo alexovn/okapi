@@ -11,23 +11,6 @@ interface FetchResponseLike {
 }
 ```
 
-## `getFetchResponseError`
-
-Handles unsuccessful HTTP responses.
-
-- Type:
-
-```ts
-function getFetchResponseError<
-  TCustomKind extends string = never,
-  TValidationErrors = ApiValidationErrors
->(
-  response: FetchResponseLike,
-  body?: unknown,
-  options?: OkapiErrorAdapterOptions<TCustomKind, TValidationErrors>
-): OkapiError<TCustomKind, TValidationErrors>
-```
-
 ## `getFetchError`
 
 Handles response-like objects, network errors, and other thrown values.
@@ -124,5 +107,5 @@ async function fetchData<T>(url: string, options?: RequestInit): Promise<T> {
 ```
 
 This example throws a mapped object to its caller. If your application expects native `Error`
-instances, use `getFetchError` and `getFetchResponseError` instead, then map the error at the UI
+instances, use `getFetchError` and `createOkapiErrorFromResponse` instead, then map the error at the UI
 boundary.
