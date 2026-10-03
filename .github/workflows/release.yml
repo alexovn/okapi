@@ -2,7 +2,7 @@ name: release
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'release/v*']
   pull_request:
     types: [closed]
     branches: [main]
@@ -28,7 +28,10 @@ jobs:
       && (
         (
           github.event_name == 'push'
-          && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+          && (
+            github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+            || startsWith(github.ref, 'refs/heads/release/v')
+          )
         ) || (
           github.event_name == 'workflow_dispatch'
           && !startsWith(github.ref, 'refs/tags/')
@@ -39,7 +42,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: danielroe/uppt/pr@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+      - uses: danielroe/uppt/pr@6ec27140623aa835e362f866d8ab0018ab057f4d # v0.6.11
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ inputs.prerelease }}
@@ -62,7 +65,7 @@ jobs:
       contents: write
       actions: write
     steps:
-      - uses: danielroe/uppt/release@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+      - uses: danielroe/uppt/release@6ec27140623aa835e362f866d8ab0018ab057f4d # v0.6.11
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           packages: |
@@ -80,7 +83,7 @@ jobs:
       files: ${{ steps.pack.outputs.files }}
     steps:
       - id: pack
-        uses: danielroe/uppt/pack@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+        uses: danielroe/uppt/pack@6ec27140623aa835e362f866d8ab0018ab057f4d # v0.6.11
         with:
           packages: |
             packages/lib
@@ -100,7 +103,7 @@ jobs:
       id-token: write
     environment: npm
     steps:
-      - uses: danielroe/uppt/publish@09882a5a0a1a20a0e802613a77ad59fcb1c1611c # v0.6.9
+      - uses: danielroe/uppt/publish@6ec27140623aa835e362f866d8ab0018ab057f4d # v0.6.11
         with:
           files: ${{ needs.pack.outputs.files }}
           npm-tag: ${{ inputs.npm-tag }}
