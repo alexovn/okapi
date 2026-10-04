@@ -4,6 +4,7 @@ import type { OkapiErrorKind } from '../../types/main'
 export const EN_OKAPI_ERROR_TITLE = {
   network: 'Connection Problem',
   abort: 'Request Cancelled',
+  timeout: 'Request Timed Out',
   unauthorized: 'Authentication Required',
   forbidden: 'Access Denied',
   'not-found': 'Not Found',
@@ -17,7 +18,8 @@ export const EN_OKAPI_ERROR_TITLE = {
 
 export const EN_OKAPI_ERROR_MESSAGE = {
   network: 'Network unavailable',
-  abort: 'Request has been cancelled',
+  abort: 'Request was aborted',
+  timeout: 'Request was aborted due to timeout',
   unauthorized: 'Unauthorized',
   forbidden: 'Insufficient access rights to perform this action',
   'not-found': 'Requested resource was not found',

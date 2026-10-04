@@ -10,7 +10,8 @@ type ApiAxiosError<T = unknown, D = unknown> = AxiosError<T, D>
 
 ## `getAxiosError`
 
-Handles Axios response errors, network errors, and other thrown values.
+Handles Axios response errors, transport failures, and other thrown values. Axios cancellations map
+to `abort`; errors with the explicit `ETIMEDOUT` code map to `timeout`.
 
 - Type:
 
@@ -26,7 +27,7 @@ function getAxiosError<
 
 ## `createAxiosErrorMapper`
 
-Creates a mapper for Axios response errors, network errors, and other thrown values.
+Creates a mapper for Axios response errors, transport failures, and other thrown values.
 
 - Type:
 
@@ -60,3 +61,7 @@ async function axiosGet<T>(url: string): Promise<T> {
 Axios exposes the parsed error response body to the adapter automatically. This example throws a
 mapped object to its caller. If your application expects native `Error` instances, use
 `getAxiosError` instead, then map the error at the UI boundary.
+
+Axios can use `ECONNABORTED` for both a timeout and an XHR abort. Okapi maps that ambiguous code to
+`network`. To distinguish Axios timeouts, enable `transitional.clarifyTimeoutError` in Axios so
+timeouts use `ETIMEDOUT`.

@@ -1,4 +1,4 @@
-![Okapi banner](./.github/assets/okapi-banner.jpg)
+[![Okapi banner](./.github/assets/okapi-banner.jpg)](https://okapi.alexovn.dev/)
 
 # Okapi
 
@@ -67,7 +67,7 @@ async function saveProfile() {
 
 ## Documentation
 
-Take a look at [Okapi documentation](https://alexovn.github.io/okapi/). There you can find all necessary information about library usage with comprehensive examples.
+Take a look at [Okapi documentation](https://okapi.alexovn.dev/). There you can find all necessary information about library usage with comprehensive examples.
 
 ## Development
 

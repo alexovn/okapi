@@ -13,7 +13,8 @@ interface FetchResponseLike {
 
 ## `getFetchError`
 
-Handles response-like objects, network errors, and other thrown values.
+Handles response-like objects, transport failures, and other thrown values. A rejected native Fetch
+request with a `TimeoutError`, such as one using `AbortSignal.timeout()`, maps to the `timeout` kind.
 
 - Type:
 
@@ -52,7 +53,7 @@ type FetchResponseErrorMapper<
 
 ## `createFetchErrorMapper`
 
-Creates a mapper for network and other thrown errors.
+Creates a mapper for transport and other thrown errors.
 
 - Type:
 

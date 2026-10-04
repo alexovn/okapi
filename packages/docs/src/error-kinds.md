@@ -8,6 +8,7 @@ the user-facing title and message.
 const OKAPI_ERROR_KIND = {
   NETWORK: 'network',
   ABORT: 'abort',
+  TIMEOUT: 'timeout',
   UNAUTHORIZED: 'unauthorized',
   FORBIDDEN: 'forbidden',
   NOT_FOUND: 'not-found',
@@ -36,8 +37,9 @@ Okapi assigns kinds from the error source and, for API or HTTP responses, the st
 
 | Kind | Type | Condition |
 | --- | --- | --- |
-| `network` | `network` | Request failed before receiving a response |
-| `abort` | `network` | Request was aborted with an `AbortError` |
+| `network` | `transport` | Request failed without a more specific transport kind |
+| `abort` | `transport` | Request was aborted with an `AbortError` |
+| `timeout` | `transport` | Request timed out with a `TimeoutError` or adapter-specific timeout marker |
 | `unauthorized` | `auth` | Status `401` |
 | `forbidden` | `business` | Status `403` |
 | `not-found` | `business` | Status `404` |
@@ -100,7 +102,7 @@ type OkapiErrorKindResolver<TCustomKind extends string = never> = (
 ```
 
 The context's [`source`](/api#source) identifies where the error originated. Response errors also
-provide their status and raw body; network and unexpected errors provide the original `cause`.
+provide their status and raw body; transport and unexpected errors provide the original `cause`.
 
 ### Example
 
@@ -137,7 +139,7 @@ const options: OkapiErrorAdapterOptions<AppErrorKind> = {
 const mapFetchResponseError = createFetchResponseErrorMapper(options)
 ```
 
-`resolveKind` runs before built-in classification for API, HTTP, network, and unexpected errors.
+`resolveKind` runs before built-in classification for API, HTTP, transport, and unexpected errors.
 Return `undefined` when the custom rule does not apply; Okapi will then use the built-in classifier.
 
 Custom kinds map to the broad `business` type by default. Add their titles and messages through

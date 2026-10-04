@@ -1,4 +1,10 @@
-import { OKAPI_ERROR_KIND, OKAPI_ERROR_TYPE, OKAPI_ERROR_SOURCE } from '../constants/main'
+import {
+  OKAPI_ERROR_KIND,
+  OKAPI_ERROR_TYPE,
+  OKAPI_ERROR_SOURCE,
+  TIMEOUT_ERROR,
+  ABORT_ERROR,
+} from '../constants/main'
 import { STATUS_CODE } from '../constants/statusCode'
 import {
   EN_OKAPI_ERROR_MESSAGE,
@@ -49,15 +55,9 @@ export class OkapiError<
   }
 
   get rawMessage(): string | undefined {
-    return isApiErrorResponseEnvelope(this.raw) ? this.raw.message : undefined
-  }
-
-  get isNetworkError(): boolean {
-    return this.kind === OKAPI_ERROR_KIND.NETWORK || this.kind === OKAPI_ERROR_KIND.ABORT
-  }
-
-  get isValidationError(): boolean {
-    return this.kind === OKAPI_ERROR_KIND.VALIDATION
+    return this.source === OKAPI_ERROR_SOURCE.API && isApiErrorResponseEnvelope(this.raw)
+      ? this.raw.message
+      : undefined
   }
 
   static getApiResponseError<
@@ -97,30 +97,77 @@ export class OkapiError<
     })
   }
 
+  static getAbortError<TCustomKind extends string = never, TValidationErrors = ApiValidationErrors>(
+    error: unknown,
+    options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {},
+  ) {
+    const kind = resolveOkapiErrorKind(
+      { source: OKAPI_ERROR_SOURCE.TRANSPORT, cause: error },
+      options,
+      () => OKAPI_ERROR_KIND.ABORT,
+    )
+    return new OkapiError<TCustomKind, TValidationErrors>({
+      kind,
+      source: OKAPI_ERROR_SOURCE.TRANSPORT,
+      message: getOkapiErrorMessageForKind(kind, options),
+      cause: error,
+    })
+  }
+
+  static getTimeoutError<
+    TCustomKind extends string = never,
+    TValidationErrors = ApiValidationErrors,
+  >(error: unknown, options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {}) {
+    const kind = resolveOkapiErrorKind(
+      { source: OKAPI_ERROR_SOURCE.TRANSPORT, cause: error },
+      options,
+      () => OKAPI_ERROR_KIND.TIMEOUT,
+    )
+
+    return new OkapiError<TCustomKind, TValidationErrors>({
+      kind,
+      source: OKAPI_ERROR_SOURCE.TRANSPORT,
+      message: getOkapiErrorMessageForKind(kind, options),
+      cause: error,
+    })
+  }
+
   static getNetworkError<
     TCustomKind extends string = never,
     TValidationErrors = ApiValidationErrors,
   >(
     error: unknown,
     options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {},
-    meta?: { isAbortError?: boolean },
   ): OkapiError<TCustomKind, TValidationErrors> {
-    const defaultKind = isAbortError(error, meta?.isAbortError)
-      ? OKAPI_ERROR_KIND.ABORT
-      : OKAPI_ERROR_KIND.NETWORK
-
     const kind = resolveOkapiErrorKind(
-      { source: OKAPI_ERROR_SOURCE.NETWORK, cause: error },
+      { source: OKAPI_ERROR_SOURCE.TRANSPORT, cause: error },
       options,
-      () => defaultKind,
+      () => OKAPI_ERROR_KIND.NETWORK,
     )
 
     return new OkapiError<TCustomKind, TValidationErrors>({
       kind,
-      source: OKAPI_ERROR_SOURCE.NETWORK,
+      source: OKAPI_ERROR_SOURCE.TRANSPORT,
       message: getOkapiErrorMessageForKind(kind, options),
       cause: error,
     })
+  }
+
+  static getTransportError<
+    TCustomKind extends string = never,
+    TValidationErrors = ApiValidationErrors,
+  >(
+    error: unknown,
+    options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {},
+    meta?: { isAbortError?: boolean; isTimeoutError?: boolean },
+  ): OkapiError<TCustomKind, TValidationErrors> {
+    if (isAbortError(error, meta?.isAbortError)) {
+      return this.getAbortError(error, options)
+    }
+    if (isTimeoutError(error, meta?.isTimeoutError)) {
+      return this.getTimeoutError(error, options)
+    }
+    return this.getNetworkError(error, options)
   }
 
   static getUnexpectedError<
@@ -278,14 +325,18 @@ export function normalizeOkapiError<
 >(
   error: unknown,
   options: OkapiErrorOptions<TCustomKind, TValidationErrors> = {},
-  meta?: { isAbortError?: boolean },
+  meta?: { isAbortError?: boolean; isTimeoutError?: boolean },
 ): OkapiError<TCustomKind, TValidationErrors> {
   if (error instanceof OkapiError) {
     return error as OkapiError<TCustomKind, TValidationErrors>
   }
 
   if (isAbortError(error, meta?.isAbortError)) {
-    return OkapiError.getNetworkError(error, options, { isAbortError: meta?.isAbortError })
+    return OkapiError.getTransportError(error, options, { isAbortError: meta?.isAbortError })
+  }
+
+  if (isTimeoutError(error, meta?.isTimeoutError)) {
+    return OkapiError.getTransportError(error, options, { isTimeoutError: meta?.isTimeoutError })
   }
 
   return OkapiError.getUnexpectedError(error, options)
@@ -297,7 +348,8 @@ function getOkapiErrorType<TCustomKind extends string, TValidationErrors>(
   switch (error.kind) {
     case OKAPI_ERROR_KIND.NETWORK:
     case OKAPI_ERROR_KIND.ABORT:
-      return OKAPI_ERROR_TYPE.NETWORK
+    case OKAPI_ERROR_KIND.TIMEOUT:
+      return OKAPI_ERROR_TYPE.TRANSPORT
 
     case OKAPI_ERROR_KIND.VALIDATION:
       return OKAPI_ERROR_TYPE.VALIDATION
@@ -455,11 +507,18 @@ function getDefaultHttpTitle(statusCode?: number, statusText?: string): string |
   return undefined
 }
 
-function isAbortError(error: unknown, forced = false): boolean {
-  if (forced) {
+function isAbortError(error: unknown, force = false): boolean {
+  if (force) {
     return true
   }
-  return isObject(error) && error.name === 'AbortError'
+  return isObject(error) && 'name' in error && error.name === ABORT_ERROR
+}
+
+function isTimeoutError(error: unknown, force = false): boolean {
+  if (force) {
+    return true
+  }
+  return isObject(error) && 'name' in error && error.name === TIMEOUT_ERROR
 }
 
 function isApiErrorResponseEnvelope(
