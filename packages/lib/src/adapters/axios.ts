@@ -1,5 +1,4 @@
-import { isAxiosError, isCancel } from 'axios'
-import type { AxiosError } from 'axios'
+import { AxiosError, isAxiosError, isCancel } from 'axios'
 
 import {
   OkapiError,
@@ -33,7 +32,13 @@ export function getAxiosError<
     )
   }
 
-  return OkapiError.getNetworkError(error, options, { isAbortError: isCancel(error) })
+  const isAbortError = isCancel(error) || error.code === AxiosError.ECONNABORTED
+
+  // Axios rejects with ECONNABORTED by default for timeout.
+  // Property transitional.clarifyTimeoutError should be set up to receive ETIMEDOUT instead.
+  const isTimeoutError = error.code === AxiosError.ETIMEDOUT
+
+  return OkapiError.getTransportError(error, options, { isAbortError, isTimeoutError })
 }
 
 export function createAxiosErrorMapper<

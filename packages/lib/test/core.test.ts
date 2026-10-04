@@ -3,8 +3,11 @@ import { FetchError, ofetch } from 'ofetch'
 import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
+  ABORT_ERROR,
+  OKAPI_ERROR_KIND,
   OKAPI_ERROR_SOURCE,
   OKAPI_ERROR_TYPE,
+  TIMEOUT_ERROR,
   OkapiError,
   mapOkapiError,
   normalizeOkapiError,
@@ -211,8 +214,8 @@ describe('aborted request', () => {
     )
 
     const mapped = getFetchError(fetchError)
-    expect(mapped.kind).toBe('abort')
-    expect(mapped.source).toBe('network')
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.ABORT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
     expect(mapped.cause).toBe(fetchError)
   })
 
@@ -225,9 +228,18 @@ describe('aborted request', () => {
       .catch((error: unknown) => error)
 
     const mapped = getAxiosError(response)
-    expect(mapped.kind).toBe('abort')
-    expect(mapped.source).toBe('network')
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.ABORT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
     expect(mapped.cause).toBe(response)
+  })
+
+  test('handles an aborted Axios request with special error code', () => {
+    const error = new axios.AxiosError('Any message', axios.AxiosError.ECONNABORTED)
+
+    const mapped = getAxiosError(error)
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.ABORT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
+    expect(mapped.cause).toBe(error)
   })
 
   test('handles an aborted ofetch request', async () => {
@@ -240,11 +252,64 @@ describe('aborted request', () => {
     }).catch((error: unknown) => error)
 
     expect(fetchError).toBeInstanceOf(FetchError)
-    expect((fetchError as FetchError).cause).toMatchObject({ name: 'AbortError' })
+    expect((fetchError as FetchError).cause).toMatchObject({ name: ABORT_ERROR })
 
     const mapped = getOfetchError(fetchError)
-    expect(mapped.kind).toBe('abort')
-    expect(mapped.source).toBe('network')
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.ABORT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
+    expect(mapped.cause).toBe(fetchError)
+  })
+})
+
+describe('timed out request', () => {
+  test('handles a native fetch timeout request', async () => {
+    const signal = AbortSignal.timeout(0)
+    await new Promise<void>((resolve) => {
+      signal.addEventListener('abort', () => resolve(), { once: true })
+    })
+
+    const fetchError = await fetch('data:,ok', { signal }).catch((error: unknown) => error)
+
+    expect(fetchError).toMatchObject({ name: TIMEOUT_ERROR })
+
+    const mapped = getFetchError(fetchError)
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.TIMEOUT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
+    expect(mapped.cause).toBe(fetchError)
+  })
+
+  test('handles an Axios timeout request', () => {
+    const error = new axios.AxiosError('Any message', axios.AxiosError.ETIMEDOUT)
+
+    const mapped = getAxiosError(error)
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.TIMEOUT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
+    expect(mapped.cause).toBe(error)
+  })
+
+  test('handles an ofetch timeout request', async () => {
+    const fetch = ofetch.create(
+      {},
+      {
+        fetch: (_request, options) =>
+          new Promise<Response>((_resolve, reject) => {
+            const signal = options?.signal
+            signal?.addEventListener('abort', () => reject(signal.reason), { once: true })
+          }),
+      },
+    )
+
+    const fetchError = await fetch('data:,ok', {
+      timeout: 1,
+      retry: false,
+    }).catch((error: unknown) => error)
+
+    expect(fetchError).toBeInstanceOf(FetchError)
+    expect((fetchError as FetchError).cause).toMatchObject({ name: TIMEOUT_ERROR })
+
+    const mapped = getOfetchError(fetchError)
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.TIMEOUT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
     expect(mapped.cause).toBe(fetchError)
   })
 })

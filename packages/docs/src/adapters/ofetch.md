@@ -10,7 +10,8 @@ type ApiOfetchError<T = unknown> = FetchError<T>
 
 ## `getOfetchError`
 
-Handles ofetch response errors, network errors, and other thrown values.
+Handles ofetch response errors, transport failures, and other thrown values. An ofetch timeout
+whose cause is named `TimeoutError` maps to the `timeout` kind.
 
 - Type:
 
@@ -26,7 +27,7 @@ function getOfetchError<
 
 ## `createOfetchErrorMapper`
 
-Creates a mapper for ofetch response errors, network errors, and other thrown values.
+Creates a mapper for ofetch response errors, transport failures, and other thrown values.
 
 - Type:
 

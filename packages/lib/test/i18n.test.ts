@@ -119,6 +119,14 @@ describe('i18n', () => {
       expect(mapped.details.rawMessage).toBe('Internal backend details')
     })
 
+    test('rawMessage excludes messages from non-API sources', () => {
+      const error = OkapiError.getHttpResponseError(400, 'Bad Request', {
+        message: 'Unrecognized response body',
+      })
+
+      expect(error.rawMessage).toBeUndefined()
+    })
+
     test('HTTP titles fall back by status, server family, status text, then kind', () => {
       const mapResponseError = createFetchResponseErrorMapper()
 
@@ -168,7 +176,7 @@ describe('i18n', () => {
       }
 
       expect(
-        mapOkapiError(OkapiError.getNetworkError(new TypeError(), options), options),
+        mapOkapiError(OkapiError.getTransportError(new TypeError(), options), options),
       ).toMatchObject({
         title: 'Connection Problem',
         message: 'Check your internet connection and try again.',
@@ -210,7 +218,7 @@ describe('i18n', () => {
         })
       }
 
-      expect(mapOkapiError(OkapiError.getNetworkError(new TypeError()), options)).toMatchObject({
+      expect(mapOkapiError(OkapiError.getTransportError(new TypeError()), options)).toMatchObject({
         title: 'Connection Problem',
         message: 'Check your internet connection and try again.',
       })

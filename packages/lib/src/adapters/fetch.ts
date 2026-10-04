@@ -48,7 +48,7 @@ export function getFetchError<
   }
 
   if (error instanceof TypeError) {
-    return OkapiError.getNetworkError(error, options)
+    return OkapiError.getTransportError(error, options)
   }
 
   return normalizeOkapiError(error, options)

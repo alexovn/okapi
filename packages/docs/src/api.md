@@ -23,8 +23,6 @@ A core class that extends the native `Error` class with useful information and b
 - `raw`: the original API or HTTP response body
 - `rawMessage`: the original message from a recognized API response
 - `cause`: the original thrown value
-- `isNetworkError`: a getter that checks if an error is a network error
-- `isValidationError`: a getter that checks if an error is a validation error
 
 ### `source`
 
@@ -34,7 +32,7 @@ Identifies where the error originated. Compare it with the values from `OKAPI_ER
 | --- | --- | --- |
 | `API` | `api` | Recognized API error response |
 | `HTTP` | `http` | HTTP response without a recognized API error body |
-| `NETWORK` | `network` | Request failed or was aborted |
+| `TRANSPORT` | `transport` | Request transport failure, cancellation, or timeout |
 | `UNEXPECTED` | `unexpected` | Unrecognized thrown value |
 | `CUSTOM` | `custom` | `OkapiError` created directly by the application |
 
@@ -42,7 +40,7 @@ Identifies where the error originated. Compare it with the values from `OKAPI_ER
 const OKAPI_ERROR_SOURCE = {
   API: 'api',
   HTTP: 'http',
-  NETWORK: 'network',
+  TRANSPORT: 'transport',
   UNEXPECTED: 'unexpected',
   CUSTOM: 'custom',
 } as const
@@ -51,8 +49,8 @@ const OKAPI_ERROR_SOURCE = {
 ```ts
 import { OKAPI_ERROR_SOURCE } from '@alexovn/okapi'
 
-if (error.source === OKAPI_ERROR_SOURCE.NETWORK) {
-  showOfflineState()
+if (error.source === OKAPI_ERROR_SOURCE.TRANSPORT) {
+  handleRequestFailure(error.kind)
 }
 ```
 
@@ -73,7 +71,8 @@ new OkapiError<
 
 ### `rawMessage`
 
-A getter for getting raw error message.
+Returns the original message from an API-sourced error response, if its raw body contains a string
+`message`. Returns `undefined` for other sources.
 
 - Type:
 
@@ -82,32 +81,6 @@ A getter for getting raw error message.
   TCustomKind extends string = never,
   TValidationErrors = ApiValidationErrors
 >.rawMessage: string | undefined
-```
-
-### `isNetworkError`
-
-A getter that checks if an error is a network error.
-
-- Type:
-
-```ts
-(getter) OkapiError<
-  TCustomKind extends string = never,
-  TValidationErrors = ApiValidationErrors
->.isNetworkError: boolean
-```
-
-### `isValidationError`
-
-A getter that checks if an error is a validation error.
-
-- Type:
-
-```ts
-(getter) OkapiError<
-  TCustomKind extends string = never,
-  TValidationErrors = ApiValidationErrors
->.isValidationError: boolean
 ```
 
 ### `getApiResponseError`
@@ -150,8 +123,7 @@ OkapiError.getHttpResponseError<
 
 ### `getNetworkError`
 
-Creates a network-sourced error from a thrown value. Errors named `AbortError` use the `abort` kind;
-other values use the `network` kind by default.
+Creates a transport-sourced error with the `network` kind by default.
 
 - Type:
 
@@ -162,6 +134,57 @@ OkapiError.getNetworkError<
 >(
   error: unknown,
   options?: OkapiErrorOptions<TCustomKind, TValidationErrors>,
+): OkapiError<TCustomKind, TValidationErrors>
+```
+
+### `getAbortError`
+
+Creates a transport-sourced error with the `abort` kind by default.
+
+- Type:
+
+```ts
+OkapiError.getAbortError<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+>(
+  error: unknown,
+  options?: OkapiErrorOptions<TCustomKind, TValidationErrors>,
+): OkapiError<TCustomKind, TValidationErrors>
+```
+
+### `getTimeoutError`
+
+Creates a transport-sourced error with the `timeout` kind by default.
+
+- Type:
+
+```ts
+OkapiError.getTimeoutError<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+>(
+  error: unknown,
+  options?: OkapiErrorOptions<TCustomKind, TValidationErrors>,
+): OkapiError<TCustomKind, TValidationErrors>
+```
+
+### `getTransportError`
+
+Classifies a thrown value as `abort` when its name is `AbortError`, `timeout` when its name is
+`TimeoutError`, or `network` otherwise. The optional flags let adapters classify wrapped errors.
+Abort takes precedence when both flags are `true`. The resulting source is `transport`.
+
+- Type:
+
+```ts
+OkapiError.getTransportError<
+  TCustomKind extends string = never,
+  TValidationErrors = ApiValidationErrors,
+>(
+  error: unknown,
+  options?: OkapiErrorOptions<TCustomKind, TValidationErrors>,
+  meta?: { isAbortError?: boolean; isTimeoutError?: boolean },
 ): OkapiError<TCustomKind, TValidationErrors>
 ```
 
@@ -223,7 +246,8 @@ function mapOkapiError<
 ## `normalizeOkapiError`
 
 Converts an unknown thrown value to an `OkapiError`. Existing `OkapiError` instances are returned
-unchanged, abort errors become network-sourced errors, and all other values become unexpected errors.
+unchanged. Values named `AbortError` or `TimeoutError` become transport-sourced errors with the
+corresponding kind; other values become unexpected errors. Optional flags support wrapped errors.
 
 - Type:
 
@@ -234,5 +258,6 @@ function normalizeOkapiError<
 >(
   error: unknown,
   options?: OkapiErrorOptions<TCustomKind, TValidationErrors>,
+  meta?: { isAbortError?: boolean; isTimeoutError?: boolean },
 ): OkapiError<TCustomKind, TValidationErrors>
 ```
