@@ -32,7 +32,7 @@ export function getAxiosError<
     )
   }
 
-  const isAbortError = isCancel(error) || error.code === AxiosError.ECONNABORTED
+  const isAbortError = isCancel(error)
 
   // Axios rejects with ECONNABORTED by default for timeout.
   // Property transitional.clarifyTimeoutError should be set up to receive ETIMEDOUT instead.

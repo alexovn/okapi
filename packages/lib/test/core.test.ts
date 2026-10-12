@@ -233,11 +233,22 @@ describe('aborted request', () => {
     expect(mapped.cause).toBe(response)
   })
 
-  test('handles an aborted Axios request with special error code', () => {
-    const error = new axios.AxiosError('Any message', axios.AxiosError.ECONNABORTED)
+  test('classifies an explicit Axios cancellation as abort', () => {
+    const error = new axios.CanceledError('Request canceled')
 
     const mapped = getAxiosError(error)
+
     expect(mapped.kind).toBe(OKAPI_ERROR_KIND.ABORT)
+    expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
+    expect(mapped.cause).toBe(error)
+  })
+
+  test('classifies ambiguous Axios ECONNABORTED as network', () => {
+    const error = new axios.AxiosError('timeout of 5000ms exceeded', axios.AxiosError.ECONNABORTED)
+
+    const mapped = getAxiosError(error)
+
+    expect(mapped.kind).toBe(OKAPI_ERROR_KIND.NETWORK)
     expect(mapped.source).toBe(OKAPI_ERROR_SOURCE.TRANSPORT)
     expect(mapped.cause).toBe(error)
   })
