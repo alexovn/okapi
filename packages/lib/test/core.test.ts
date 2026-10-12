@@ -84,6 +84,22 @@ describe('custom error kinds', () => {
 
     expect(mapResponseError({ status: 404 }).details.kind).toBe('not-found')
   })
+
+  test.each([429, 503])('preserves custom kind resolution for HTTP %i', (status) => {
+    const body = {
+      message: 'Request failed',
+      errors: { email: ['Invalid email'] },
+    }
+
+    const mapResponseError = createFetchResponseErrorMapper<'maintenance-mode'>({
+      resolveKind: ({ statusCode }) => (statusCode === status ? 'maintenance-mode' : undefined),
+    })
+
+    const mapped = mapResponseError({ status }, body)
+
+    expect(mapped.details.kind).toBe('maintenance-mode')
+    expect(mapped.details.raw).toEqual(body)
+  })
 })
 
 describe('validation errors', () => {
@@ -201,6 +217,36 @@ describe('validation errors', () => {
     expect(mapped.type).toBe(OKAPI_ERROR_TYPE.BUSINESS)
     expect(mapped.errors).toBeUndefined()
     expect(mapped.details.source).toBe(OKAPI_ERROR_SOURCE.API)
+  })
+})
+
+describe('HTTP status precedence', () => {
+  const body = {
+    message: 'Request failed',
+    errors: {
+      email: ['Invalid email'],
+    },
+  }
+
+  test.each([
+    [429, OKAPI_ERROR_KIND.RATE_LIMITED, OKAPI_ERROR_TYPE.BUSINESS],
+    [500, OKAPI_ERROR_KIND.SERVER, OKAPI_ERROR_TYPE.SERVER],
+    [503, OKAPI_ERROR_KIND.SERVER, OKAPI_ERROR_TYPE.SERVER],
+  ])('prioritizes HTTP %i over validation payload', (status, kind, type) => {
+    const mapped = createFetchResponseErrorMapper()({ status }, body)
+
+    expect(mapped.details.kind).toBe(kind)
+    expect(mapped.type).toBe(type)
+    expect(mapped.errors).toBeUndefined()
+  })
+
+  test.each([400, 422])('preserves validation classification for HTTP %i', (status) => {
+    const mapped = createFetchResponseErrorMapper()({ status }, body)
+
+    expect(mapped.details.kind).toBe(OKAPI_ERROR_KIND.VALIDATION)
+    expect(mapped.errors).toEqual(body.errors)
+    expect(mapped.details.raw).toEqual(body)
+    expect(mapped.details.validationErrors).toEqual(body.errors)
   })
 })
 

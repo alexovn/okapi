@@ -384,14 +384,14 @@ function getKindFromStatus(
   if (statusCode === STATUS_CODE.CONFLICT) {
     return OKAPI_ERROR_KIND.CONFLICT
   }
-  if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT || hasValidationErrors) {
-    return OKAPI_ERROR_KIND.VALIDATION
-  }
   if (statusCode === STATUS_CODE.TOO_MANY_REQUESTS) {
     return OKAPI_ERROR_KIND.RATE_LIMITED
   }
   if (statusCode && statusCode >= STATUS_CODE.INTERNAL_SERVER_ERROR) {
     return OKAPI_ERROR_KIND.SERVER
+  }
+  if (statusCode === STATUS_CODE.UNPROCESSABLE_CONTENT || hasValidationErrors) {
+    return OKAPI_ERROR_KIND.VALIDATION
   }
 
   return OKAPI_ERROR_KIND.BUSINESS
