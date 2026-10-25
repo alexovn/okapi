@@ -1,10 +1,4 @@
-import {
-  OKAPI_ERROR_KIND,
-  OKAPI_ERROR_TYPE,
-  OKAPI_ERROR_SOURCE,
-  TIMEOUT_ERROR,
-  ABORT_ERROR,
-} from '../constants/main'
+import { OKAPI_ERROR_KIND, OKAPI_ERROR_TYPE, OKAPI_ERROR_SOURCE } from '../constants/main'
 import { STATUS_CODE } from '../constants/statusCode'
 import {
   EN_OKAPI_ERROR_MESSAGE,
@@ -28,6 +22,8 @@ import type {
   ParsedOkapiErrorResponse,
   ParsedValidationErrors,
 } from '../types/main'
+import { isObject } from '../utils'
+import { isAbortError, isTimeoutError } from '../utils/errors'
 
 export class OkapiError<
   TCustomKind extends string = never,
@@ -507,28 +503,10 @@ function getDefaultHttpTitle(statusCode?: number, statusText?: string): string |
   return undefined
 }
 
-function isAbortError(error: unknown, force = false): boolean {
-  if (force) {
-    return true
-  }
-  return isObject(error) && 'name' in error && error.name === ABORT_ERROR
-}
-
-function isTimeoutError(error: unknown, force = false): boolean {
-  if (force) {
-    return true
-  }
-  return isObject(error) && 'name' in error && error.name === TIMEOUT_ERROR
-}
-
 function isApiErrorResponseEnvelope(
   value: unknown,
 ): value is Record<string, unknown> & { message: string } {
   return isObject(value) && typeof value.message === 'string'
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
 }
 
 function isValidationErrors(value: unknown): value is ApiValidationErrors {

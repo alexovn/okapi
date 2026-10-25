@@ -1,6 +1,5 @@
 import { FetchError } from 'ofetch'
 
-import { ABORT_ERROR, TIMEOUT_ERROR } from '../constants'
 import {
   OkapiError,
   createOkapiErrorFromResponse,
@@ -8,6 +7,7 @@ import {
   normalizeOkapiError,
 } from '../core/okapiError'
 import type { ApiValidationErrors, OkapiErrorAdapterOptions, OkapiErrorMapper } from '../types/main'
+import { isAbortError, isTimeoutError } from '../utils/errors'
 
 export type ApiOfetchError<T = unknown> = FetchError<T>
 
@@ -35,13 +35,10 @@ export function getOfetchError<
 
   const cause = error.cause
 
-  const isAbortError =
-    typeof cause === 'object' && cause !== null && 'name' in cause && cause.name === ABORT_ERROR
-
-  const isTimeoutError =
-    typeof cause === 'object' && cause !== null && 'name' in cause && cause.name === TIMEOUT_ERROR
-
-  return OkapiError.getTransportError(error, options, { isAbortError, isTimeoutError })
+  return OkapiError.getTransportError(error, options, {
+    isAbortError: isAbortError(cause),
+    isTimeoutError: isTimeoutError(cause),
+  })
 }
 
 export function createOfetchErrorMapper<
