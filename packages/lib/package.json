@@ -1,7 +1,7 @@
 {
   "name": "@alexovn/okapi",
   "type": "module",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": false,
   "description": "A library for handling API and HTTP errors with ease.",
   "author": "Nikita Aleksov (https://github.com/alexovn/)",
