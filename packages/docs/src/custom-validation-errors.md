@@ -1,3 +1,8 @@
+---
+title: Custom Validation Errors
+description: Parse and normalize custom API validation error payloads with Okapi while preserving their TypeScript types across error mappers
+---
+
 # Custom Validation Errors
 
 By default, Okapi recognizes validation errors shaped as a dictionary of string arrays:

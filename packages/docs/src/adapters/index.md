@@ -1,3 +1,8 @@
+---
+title: Adapters
+description: Explore built-in Okapi adapters for your preferred HTTP client
+---
+
 # Adapters
 
 If you want to get started quickly, take a look at the built-in fetch adapters. Each adapter is a

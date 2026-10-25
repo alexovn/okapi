@@ -1,3 +1,8 @@
+---
+title: ofetch
+description: Map ofetch response errors, network failures, and timeouts to consistent Okapi errors with type-safe adapters and customizable messages
+---
+
 # ofetch
 
 An adapter for ofetch.

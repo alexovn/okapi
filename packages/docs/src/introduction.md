@@ -1,3 +1,8 @@
+---
+title: Introduction
+description: Learn how Okapi turns API and HTTP errors into a consistent format with type safety, translations, and adapters for your preferred HTTP client
+---
+
 # Introduction
 
 ## What is Okapi?

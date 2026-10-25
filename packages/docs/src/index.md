@@ -1,4 +1,6 @@
 ---
+title: Okapi
+description: Handle API and HTTP errors with a type-safe, framework-agnostic library featuring customizable messages, i18n, and adapters for your preferred HTTP client
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
