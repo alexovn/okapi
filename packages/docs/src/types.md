@@ -1,3 +1,8 @@
+---
+title: Types
+description: Reference shared Okapi TypeScript types for API responses, error classification, error data, mapper results, and configuration
+---
+
 # Types
 
 Shared types used across the core API and adapters are documented here. Types that belong to a

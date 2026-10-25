@@ -1,3 +1,8 @@
+---
+title: Axios
+description: Map Axios response errors, network failures, cancellations, and timeouts to consistent Okapi errors with customizable titles and messages
+---
+
 # Axios
 
 An adapter for Axios.

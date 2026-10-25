@@ -1,3 +1,4 @@
+import { joinURL, withoutTrailingSlash } from 'ufo'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import llmstxt from 'vitepress-plugin-llms'
@@ -11,8 +12,95 @@ export default defineConfig({
   base,
   lang: 'en-US',
   title: 'Okapi',
-  description: 'A library for handling API and HTTP errors with ease.',
-  head: [['link', { rel: 'icon', href: `${base}favicon.ico` }]],
+  description: 'A library for handling API and HTTP errors with ease',
+  head: [
+    // Basic
+    ['link', { rel: 'icon', href: `${base}favicon.ico` }],
+
+    // Open Graph
+    ['meta', { property: 'og:site_name', content: 'Okapi' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    [
+      'meta',
+      {
+        property: 'og:image',
+        content:
+          'https://res.cloudinary.com/drh75w8s9/image/upload/v1792928376/okapi-banner_dcsnfe.jpg',
+      },
+    ],
+
+    // Twitter
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:site', content: 'okapi' }],
+    [
+      'meta',
+      {
+        name: 'twitter:image',
+        content:
+          'https://res.cloudinary.com/drh75w8s9/image/upload/v1792928376/okapi-banner_dcsnfe.jpg',
+      },
+    ],
+  ],
+  transformPageData(pageData, { siteConfig }) {
+    pageData.frontmatter.head ??= []
+
+    pageData.frontmatter.head.push(
+      [
+        'meta',
+        {
+          property: 'og:title',
+          content: pageData.frontmatter.title || pageData.title || siteConfig.site.title,
+        },
+      ],
+      [
+        'meta',
+        {
+          property: 'og:description',
+          content:
+            pageData.frontmatter.description || pageData.description || siteConfig.site.description,
+        },
+      ],
+      [
+        'meta',
+        {
+          name: 'twitter:title',
+          content: pageData.frontmatter.title || pageData.title || siteConfig.site.title,
+        },
+      ],
+      [
+        'meta',
+        {
+          name: 'twitter:description',
+          content:
+            pageData.frontmatter.description || pageData.description || siteConfig.site.description,
+        },
+      ],
+    )
+
+    pageData.frontmatter.head.push([
+      'link',
+      {
+        rel: 'canonical',
+        href: joinURL(
+          'https://okapi.alexovn.dev',
+          siteConfig.site.base,
+          withoutTrailingSlash(pageData.filePath.replace(/(index)?\.md$/, '')),
+        ),
+      },
+    ])
+
+    pageData.frontmatter.head.push([
+      'meta',
+      {
+        property: 'og:url',
+        content: joinURL(
+          'https://okapi.alexovn.dev',
+          siteConfig.site.base,
+          withoutTrailingSlash(pageData.filePath.replace(/(index)?\.md$/, '')),
+        ),
+      },
+    ])
+  },
   cleanUrls: true,
   lastUpdated: true,
   markdown: {

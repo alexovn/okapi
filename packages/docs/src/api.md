@@ -1,3 +1,8 @@
+---
+title: API
+description: Explore the Okapi API for creating, classifying, and mapping errors, including OkapiError properties and core error-handling functions
+---
+
 # API
 
 ## `OkapiError`

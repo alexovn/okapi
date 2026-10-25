@@ -1,3 +1,8 @@
+---
+title: Native Fetch
+description: Handle native Fetch response errors, network failures, cancellations, and timeouts with type-safe Okapi error mappers
+---
+
 # Native Fetch
 
 An adapter for native fetching.

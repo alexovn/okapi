@@ -1,3 +1,8 @@
+---
+title: Error Kinds
+description: Understand how Okapi classifies API, HTTP, and transport errors, and define custom error kinds for application-specific behavior
+---
+
 # Error Kinds
 
 An error kind is Okapi's specific, machine-readable classification for an error. Read it from

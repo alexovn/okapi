@@ -1,3 +1,8 @@
+---
+title: Quick Start
+description: Install Okapi and start mapping API and HTTP errors to consistent, customizable titles and messages for your application
+---
+
 # Quick Start
 
 ## Prerequisites
