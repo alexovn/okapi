@@ -5,6 +5,7 @@ import {
   normalizeOkapiError,
 } from '../core/okapiError'
 import type { ApiValidationErrors, OkapiErrorAdapterOptions, MappedOkapiError } from '../types/main'
+import { isObject } from '../utils'
 
 export interface FetchResponseLike {
   status: number
@@ -23,10 +24,6 @@ export type FetchErrorMapper<
   TCustomKind extends string = never,
   TValidationErrors = ApiValidationErrors,
 > = (error: unknown, body?: unknown) => MappedOkapiError<TCustomKind, TValidationErrors>
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
 
 export function getFetchError<
   TCustomKind extends string = never,
