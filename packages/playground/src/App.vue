@@ -1,98 +1,105 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { TabsContent, TabsList, TabsRoot, TabsTrigger, ToastProvider } from 'reka-ui'
+import { watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useOfetch } from './utils/ofetch'
+import ThemeSwitch from './components/ThemeSwitch.vue'
+import UiPanel from './components/UiPanel.vue'
+import UiSelect from './components/UiSelect.vue'
+import { adapters } from './examples'
 
-const { availableLocales, locale } = useI18n()
-const { ofetchGet } = useOfetch()
-
-const post = ref<unknown | null>(null)
-const errorInfo = ref<unknown | null>(null)
-
-function clearError() {
-  errorInfo.value = null
-}
-
-async function fetchPost(options = { throwError: false }) {
-  clearError()
-
-  try {
-    const res = await ofetchGet<any>(
-      `https://jsonplaceholder.typicode.com/posts/${options.throwError ? '101' : '1'}`,
-    )
-    post.value = res
-  } catch (error) {
-    errorInfo.value = error
-    console.error('Failed to fetch post:', error)
-  }
-}
+const { t, locale } = useI18n()
+watchEffect(() => {
+  document.documentElement.lang = locale.value
+  document.title = t('ui.pageTitle')
+})
 </script>
 
 <template>
-  <div class="wrapper">
-    <label class="locale-switch">
-      <span> Locale </span>
+  <ToastProvider :label="t('ui.notification')">
+    <div
+      class="mx-auto max-w-3xl min-h-screen flex flex-col justify-between gap-6 px-4 py-10 sm:px-6 sm:py-14"
+    >
+      <header class="space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="pt-1">
+            <a
+              class="flex items-center gap-2 font-semibold"
+              href="https://okapi.alexovn.dev/"
+              target="_blank"
+            >
+              <img class="h-6 hidden dark:block" src="/okapi-logo-white.svg" alt="Okapi" />
+              <img class="h-6 dark:hidden" src="/okapi-logo-black.svg" alt="Okapi" />
 
-      <select v-model="locale">
-        <option
-          v-for="availableLocale in availableLocales"
-          :key="availableLocale"
-          :value="availableLocale"
-        >
-          {{ availableLocale.toUpperCase() }}
-        </option>
-      </select>
-    </label>
+              <span>Okapi</span>
+            </a>
+          </div>
 
-    <div class="actions">
-      <button @click="fetchPost()">Fetch post</button>
-      <button @click="fetchPost({ throwError: true })">Throw error</button>
+          <div class="flex items-start gap-5">
+            <div class="space-y-2 text-xs font-medium text-muted">
+              <label for="language-select" class="block">{{ t('ui.language') }}</label>
+              <UiSelect
+                id="language-select"
+                v-model="locale"
+                :options="[
+                  { value: 'en', label: 'English' },
+                  { value: 'es', label: 'Español' },
+                ]"
+              />
+            </div>
 
-      <button v-if="errorInfo" @click="clearError">Clear error</button>
+            <ThemeSwitch />
+          </div>
+        </div>
+
+        <div>
+          <h1 class="text-3xl font-semibold tracking-tight">{{ t('ui.title') }}</h1>
+
+          <p class="mt-2 max-w-lg text-sm leading-6 text-muted">
+            {{ t('ui.description') }}
+          </p>
+        </div>
+      </header>
+
+      <main>
+        <UiPanel as-child>
+          <TabsRoot default-value="fetch">
+            <TabsList
+              :aria-label="t('ui.adapters')"
+              class="mb-6 flex gap-1 border-b border-divider"
+            >
+              <TabsTrigger
+                v-for="adapter in adapters"
+                :key="adapter.id"
+                :value="adapter.id"
+                class="-mb-px border-b-2 border-transparent px-3 py-3 text-sm font-medium text-muted data-[state=active]:border-brand data-[state=active]:text-brand"
+              >
+                {{ adapter.label }}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent v-for="adapter in adapters" :key="adapter.id" :value="adapter.id">
+              <component :is="adapter.component" />
+            </TabsContent>
+          </TabsRoot>
+        </UiPanel>
+      </main>
+
+      <footer class="mt-auto text-center text-xs text-muted">
+        <div>
+          <span>
+            {{ t('ui.service') }}
+          </span>
+          <a
+            class="underline underline-offset-2 hover:text-ink"
+            href="https://httpstatus.codes/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            httpstatus.codes
+          </a>
+        </div>
+      </footer>
     </div>
-
-    <div class="content">
-      <div class="error-info" v-if="errorInfo">
-        <code>
-          {{ errorInfo }}
-        </code>
-      </div>
-
-      <div v-if="post">
-        {{ post }}
-      </div>
-    </div>
-  </div>
+  </ToastProvider>
 </template>
-
-<style scoped>
-.wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.locale-switch {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.content {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.error-info {
-  white-space: pre-wrap;
-}
-</style>

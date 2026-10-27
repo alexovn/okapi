@@ -1,11 +1,13 @@
 import { fileURLToPath, URL } from 'node:url'
 
+import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
   root: 'src',
-  plugins: [vue()],
+  publicDir: '../public',
+  plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
       '@alexovn/okapi/fetch': fileURLToPath(

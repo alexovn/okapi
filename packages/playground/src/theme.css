@@ -1,0 +1,64 @@
+/* Relevant VitePress default colors, with the overrides from
+   packages/docs/.vitepress/theme/custom.css. Kept local for standalone examples. */
+:root {
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f6f6f7;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-bg-soft: #f6f6f7;
+  --vp-c-border: #c2c2c4;
+  --vp-c-divider: #e2e2e3;
+  --vp-c-text-1: #3c3c43;
+  --vp-c-text-2: #67676c;
+  --vp-c-default-2: #e4e4e9;
+  --vp-c-default-3: #ebebef;
+  --vp-c-brand-1: #a4133c;
+  --vp-c-brand-2: #b51742;
+  --vp-c-brand-3: #c9184a;
+  --vp-c-brand-soft: rgba(201, 24, 74, 0.14);
+  --vp-button-brand-text: #ffffff;
+  --vp-c-success-1: #526b8a;
+  --vp-c-danger-1: #b8272c;
+  --vp-c-danger-soft: rgba(244, 63, 94, 0.14);
+}
+
+.dark {
+  --vp-c-bg: #1b1b1f;
+  --vp-c-bg-alt: #161618;
+  --vp-c-bg-elv: #202127;
+  --vp-c-bg-soft: #202127;
+  --vp-c-border: #3c3f44;
+  --vp-c-divider: #2e2e32;
+  --vp-c-text-1: #dfdfd6;
+  --vp-c-text-2: #98989f;
+  --vp-c-default-2: #414853;
+  --vp-c-default-3: #32363f;
+  --vp-c-brand-1: #ff8fa3;
+  --vp-c-brand-2: #ff6b81;
+  --vp-c-brand-3: #ff4d6d;
+  --vp-c-brand-soft: rgba(255, 77, 109, 0.16);
+  --vp-button-brand-text: #1b1b1f;
+  --vp-c-success-1: #9aafca;
+  --vp-c-danger-1: #f66f81;
+  --vp-c-danger-soft: rgba(244, 63, 94, 0.16);
+}
+
+@theme inline {
+  --color-page: var(--vp-c-bg);
+  --color-page-alt: var(--vp-c-bg-alt);
+  --color-surface: var(--vp-c-bg-elv);
+  --color-soft: var(--vp-c-bg-soft);
+  --color-edge: var(--vp-c-border);
+  --color-divider: var(--vp-c-divider);
+  --color-ink: var(--vp-c-text-1);
+  --color-muted: var(--vp-c-text-2);
+  --color-default: var(--vp-c-default-3);
+  --color-default-hover: var(--vp-c-default-2);
+  --color-brand: var(--vp-c-brand-1);
+  --color-brand-hover: var(--vp-c-brand-2);
+  --color-brand-solid: var(--vp-c-brand-3);
+  --color-brand-soft: var(--vp-c-brand-soft);
+  --color-on-brand: var(--vp-button-brand-text);
+  --color-success: var(--vp-c-success-1);
+  --color-danger: var(--vp-c-danger-1);
+  --color-danger-soft: var(--vp-c-danger-soft);
+}

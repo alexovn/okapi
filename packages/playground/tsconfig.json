@@ -14,7 +14,14 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "composite": true
+    "composite": true,
+    "rootDir": "..",
+    "paths": {
+      "@alexovn/okapi": ["../lib/src/index.ts"],
+      "@alexovn/okapi/fetch": ["../lib/src/adapters/fetch.ts"],
+      "@alexovn/okapi/axios": ["../lib/src/adapters/axios.ts"],
+      "@alexovn/okapi/ofetch": ["../lib/src/adapters/ofetch.ts"]
+    }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "vitest.config.ts", "test", "../lib/src"]
 }
