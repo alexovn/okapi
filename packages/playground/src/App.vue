@@ -1,98 +1,121 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-import { useOfetch } from './utils/ofetch'
-
-const { availableLocales, locale } = useI18n()
-const { ofetchGet } = useOfetch()
-
-const post = ref<unknown | null>(null)
-const errorInfo = ref<unknown | null>(null)
-
-function clearError() {
-  errorInfo.value = null
-}
-
-async function fetchPost(options = { throwError: false }) {
-  clearError()
-
-  try {
-    const res = await ofetchGet<any>(
-      `https://jsonplaceholder.typicode.com/posts/${options.throwError ? '101' : '1'}`,
-    )
-    post.value = res
-  } catch (error) {
-    errorInfo.value = error
-    console.error('Failed to fetch post:', error)
-  }
-}
+import ThemeSwitch from './components/ThemeSwitch.vue'
+import PlaygroundApp from './PlaygroundApp.vue'
 </script>
 
 <template>
-  <div class="wrapper">
-    <label class="locale-switch">
-      <span> Locale </span>
-
-      <select v-model="locale">
-        <option
-          v-for="availableLocale in availableLocales"
-          :key="availableLocale"
-          :value="availableLocale"
-        >
-          {{ availableLocale.toUpperCase() }}
-        </option>
-      </select>
-    </label>
-
-    <div class="actions">
-      <button @click="fetchPost()">Fetch post</button>
-      <button @click="fetchPost({ throwError: true })">Throw error</button>
-
-      <button v-if="errorInfo" @click="clearError">Clear error</button>
-    </div>
-
-    <div class="content">
-      <div class="error-info" v-if="errorInfo">
-        <code>
-          {{ errorInfo }}
-        </code>
+  <div class="app">
+    <header class="app__header">
+      <div class="app__toolbar">
+        <div class="app__brand">
+          <a class="app__home" href="https://okapi.alexovn.dev/" target="_blank">
+            <img class="app__logo app__logo--dark" src="/okapi-logo-white.svg" alt="Okapi" />
+            <img class="app__logo app__logo--light" src="/okapi-logo-black.svg" alt="Okapi" />
+            <span>Okapi</span>
+          </a>
+        </div>
+        <ThemeSwitch />
       </div>
-
-      <div v-if="post">
-        {{ post }}
+      <div>
+        <h1 class="app__title">Error handling, made clear</h1>
+        <p class="app__description">
+          Try the same request with different HTTP clients. Inspect the response and see how Okapi
+          turns failures into useful errors
+        </p>
       </div>
-    </div>
+    </header>
+    <PlaygroundApp />
   </div>
 </template>
 
+<style>
+@import './palette.css';
+
+body {
+  margin: 0;
+  background: var(--vp-c-bg);
+  color: var(--vp-c-text-1);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+</style>
+
 <style scoped>
-.wrapper {
+.app {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.5rem;
+  min-height: 100vh;
+  max-width: 48rem;
+  margin-inline: auto;
+  padding: 2.5rem 1rem;
+  line-height: 1.5;
 }
 
-.locale-switch {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.app :deep(.playground-app) {
+  flex: 1;
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.content {
-  margin-top: 12px;
+.app__header {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1.25rem;
 }
 
-.error-info {
-  white-space: pre-wrap;
+.app__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.app__brand {
+  padding-top: 0.25rem;
+}
+
+.app__home {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app__logo {
+  height: 1.5rem;
+}
+
+.app__logo--dark {
+  display: none;
+}
+
+:global(.dark .app__logo--dark) {
+  display: block;
+}
+
+:global(.dark .app__logo--light) {
+  display: none;
+}
+
+.app__title {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 40px;
+  letter-spacing: -0.02em;
+}
+
+.app__description {
+  max-width: 32rem;
+  margin-top: 1rem;
+  color: var(--vp-c-text-2);
+  font-size: 1rem;
+  line-height: 28px;
+}
+
+@media (min-width: 640px) {
+  .app {
+    padding: 3.5rem 1.5rem;
+  }
 }
 </style>
