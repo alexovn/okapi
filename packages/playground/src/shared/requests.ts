@@ -17,8 +17,22 @@ export function requestSignal({ signal, timeoutMs }: RequestOptions): AbortSigna
 }
 
 export const scenarios = [
-  ...[200, 204, 400, 401, 403, 404, 409, 418, 422, 429, 500, 503].map((status) => ({
+  ...[
+    { status: 200, label: '200 · Success' },
+    { status: 204, label: '204 · No content' },
+    { status: 400, label: '400 · Bad request' },
+    { status: 401, label: '401 · Unauthorized' },
+    { status: 403, label: '403 · Forbidden' },
+    { status: 404, label: '404 · Not found' },
+    { status: 409, label: '409 · Conflict' },
+    { status: 418, label: '418 · I’m a teapot' },
+    { status: 422, label: '422 · Validation' },
+    { status: 429, label: '429 · Rate limited' },
+    { status: 500, label: '500 · Server error' },
+    { status: 503, label: '503 · Service unavailable' },
+  ].map(({ status, label }) => ({
     id: String(status),
+    label,
     status,
     delay: 0,
     timeoutMs: 15000,
@@ -26,6 +40,7 @@ export const scenarios = [
   })),
   {
     id: 'text',
+    label: '500 · Plain-text HTTP error',
     status: 500,
     delay: 0,
     timeoutMs: 15000,
@@ -33,6 +48,7 @@ export const scenarios = [
   },
   {
     id: 'slow',
+    label: 'Slow success · 3 seconds (try Cancel)',
     status: 200,
     delay: 3000,
     timeoutMs: 15000,
@@ -40,6 +56,7 @@ export const scenarios = [
   },
   {
     id: 'timeout',
+    label: 'Timeout · 1 second limit, 3 second response',
     status: 200,
     delay: 3000,
     timeoutMs: 1000,

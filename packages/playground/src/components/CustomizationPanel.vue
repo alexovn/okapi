@@ -1,45 +1,115 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { customKindFixture, mapCustomFixture, validationFixture } from '../shared/customization'
-import { formatJson, useErrorOptions } from '../shared/errors'
+import { formatJson } from '../shared/errors'
 import ErrorResult from './ErrorResult.vue'
 import UiPanel from './UiPanel.vue'
 import UiSelect from './UiSelect.vue'
 
-const { t } = useI18n()
 const mode = ref<'kind' | 'validation'>('kind')
-const options = useErrorOptions<'subscription-expired'>()
-const result = computed(() => mapCustomFixture(mode.value, options))
+const result = computed(() => mapCustomFixture(mode.value))
 </script>
 
 <template>
-  <UiPanel as="section" class="space-y-5">
+  <UiPanel as="section" class="customization-panel">
     <div>
-      <h2 class="text-lg font-semibold">{{ t('custom.title') }}</h2>
-      <p class="mt-1 text-sm text-muted">{{ t('custom.description') }}</p>
+      <h2 class="customization-panel__title">Core customization</h2>
+      <p class="customization-panel__description">
+        Local fixtures · No network request. These examples use Okapi’s core APIs directly.
+      </p>
     </div>
-    <div class="space-y-2 text-sm font-medium">
-      <label for="customization-select" class="block">{{ t('custom.example') }}</label>
+    <div class="customization-panel__field">
+      <label for="customization-select" class="customization-panel__label">Example</label>
       <UiSelect
         id="customization-select"
         v-model="mode"
         :options="[
-          { value: 'kind', label: t('custom.kind') },
-          { value: 'validation', label: t('custom.validation') },
+          { value: 'kind', label: 'Custom error kind' },
+          { value: 'validation', label: 'Custom validation parser' },
         ]"
-        class="w-full sm:w-auto"
+        class="customization-panel__select"
       />
     </div>
-    <p class="text-sm text-muted">{{ t(`custom.${mode}Help`) }}</p>
+    <p class="customization-panel__help">
+      {{
+        mode === 'kind'
+          ? 'resolveKind maps an API code to subscription-expired instead of the default forbidden kind.'
+          : 'parseValidationErrors converts an array of field errors into a dictionary.'
+      }}
+    </p>
     <details>
-      <summary class="cursor-pointer text-sm font-medium">{{ t('custom.input') }}</summary>
+      <summary class="customization-panel__summary">Input fixture</summary>
       <pre
-        class="output mt-3"
+        class="customization-panel__output"
         v-text="formatJson(mode === 'kind' ? customKindFixture : validationFixture)"
       />
     </details>
     <ErrorResult :error="result" />
   </UiPanel>
 </template>
+
+<style scoped>
+.customization-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.customization-panel__label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.customization-panel__summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.customization-panel__output {
+  max-height: 20rem;
+  margin: 0;
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: var(--vp-c-bg-alt);
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-mono, monospace);
+  font-size: 0.75rem;
+  line-height: 1.5rem;
+  white-space: pre;
+}
+
+.customization-panel__output {
+  margin-top: 0.75rem;
+}
+
+.customization-panel__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.customization-panel__description {
+  margin-top: 0.25rem;
+  color: var(--vp-c-text-2);
+  font-size: 0.875rem;
+}
+
+:deep(.customization-panel__select) {
+  width: 100%;
+}
+
+.customization-panel__help {
+  color: var(--vp-c-text-2);
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  :deep(.customization-panel__select) {
+    width: auto;
+  }
+}
+</style>

@@ -1,41 +1,25 @@
-@import 'tailwindcss';
-@import './theme.css';
-
-@custom-variant dark (&:where(.dark, .dark *));
-
-@theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@layer base {
-  :root {
-    color-scheme: light;
-  }
-  :root.dark {
-    color-scheme: dark;
-  }
-  body {
-    @apply m-0 min-h-full bg-page font-sans text-ink antialiased;
-  }
-  button,
-  select,
-  summary,
-  a {
-    @apply focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand;
-  }
-  button,
-  select {
-    @apply disabled:cursor-not-allowed disabled:opacity-50;
-  }
-  button,
-  summary,
-  select {
-    @apply cursor-pointer;
-  }
+.app :where(h1, p),
+.playground-page :where(h1, p),
+.playground-app :where(h1, h2, h3, h4, p, dl, dd) {
+  margin: 0;
 }
 
-@layer components {
-  .output {
-    @apply max-h-80 overflow-auto rounded-lg bg-page-alt p-4 font-mono text-xs leading-6 text-ink;
-  }
+.app :is(button, select, summary, a):focus-visible,
+.playground-app :is(button, select, summary, a):focus-visible,
+.ui-select__menu:focus-visible,
+.error-toast :is(button, a):focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
+}
+
+.playground-app :is(button, select):disabled,
+.error-toast button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }

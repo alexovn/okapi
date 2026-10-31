@@ -1,24 +1,6 @@
-import {
-  mapOkapiError,
-  OkapiError,
-  type MappedOkapiError,
-  type OkapiErrorAdapterOptions,
-} from '@alexovn/okapi'
-import { useI18n } from 'vue-i18n'
+import { mapOkapiError, OkapiError, type MappedOkapiError } from '@alexovn/okapi'
 
 export type PlaygroundError = MappedOkapiError<'subscription-expired'>
-
-export function useErrorOptions<
-  TCustomKind extends string = never,
->(): OkapiErrorAdapterOptions<TCustomKind> {
-  const { t } = useI18n()
-  return {
-    i18n: {
-      resolveTitle: ({ kind }) => t(`errors.${kind}.title`),
-      resolveMessage: ({ kind }) => t(`errors.${kind}.message`),
-    },
-  }
-}
 
 export function caughtError(error: unknown): PlaygroundError {
   if (

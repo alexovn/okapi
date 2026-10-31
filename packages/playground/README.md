@@ -1,5 +1,21 @@
 # Okapi playground
 
+The playground is also available at `/playground` in the docs. Run
+`pnpm --filter @alexovn/okapi-docs docs:dev` to preview it. The page imports
+`src/PlaygroundApp.vue` directly and uses the documentation's theme switch.
+`src/App.vue` wraps the same component for the standalone app. Each page owns its
+title and description; `PlaygroundApp.vue` contains the interactive controls,
+results, and response-service attribution. The standalone app also owns its logo
+and theme switch.
+
+Components use SFC `<style>` blocks with plain CSS, BEM classes, and
+VitePress theme variables. Styles are scoped except for select menus and
+notifications, whose BEM selectors also work when rendered through portals.
+Shared resets, focus outlines, and disabled states live in `src/style.css`, imported
+by `PlaygroundApp.vue` for both the docs and standalone app. The standalone palette
+and body styles are loaded by `App.vue`. All playground text is English; no
+translation plugin is required.
+
 From the repository root, run `pnpm install` and `pnpm pg:dev`.
 
 ```sh
@@ -25,20 +41,19 @@ validation parsing without pretending the fixture came from a live server.
 ## Standalone examples
 
 Each folder in `src/examples/{fetch,axios,ofetch}` contains an `Example.vue` and
-`client.ts`. The component initializes the client with vue-i18n resolvers; the
-client owns HTTP configuration and imports its adapter through Okapi's public
-package entrypoint.
+`client.ts`. The component initializes the client with Okapi's default English
+messages; the client owns HTTP configuration and imports its adapter through
+Okapi's public package entrypoint.
 
 To extract one example into a Vue/Vite StackBlitz project:
 
 1. Copy its folder, `src/components/{RequestPanel,ErrorResult,ErrorToast,UiButton,UiSelect}.vue`,
-   `src/shared/{requests,errors}.ts`, `src/i18n`, `src/style.css`, and `src/theme.css`, retaining
+   `src/shared/{requests,errors}.ts`, `src/style.css`, and `src/palette.css`, retaining
    their relative structure.
-2. Install `@alexovn/okapi`, `vue`, `vue-i18n`, `reka-ui`, and that adapter's HTTP
+2. Install `@alexovn/okapi`, `vue`, `reka-ui`, and that adapter's HTTP
    client (`axios` or `ofetch`; native fetch needs neither).
-3. Configure `@vitejs/plugin-vue` and Tailwind v4's `@tailwindcss/vite` plugin.
-   Import `style.css`, register `createPlaygroundI18n()`, and render the example
-   inside Reka's `ToastProvider`.
+3. Configure `@vitejs/plugin-vue`, import `style.css` and `palette.css`, and
+   render the example inside Reka's `ToastProvider`.
 4. Use the published Okapi package. The playground's Vite/TypeScript source
    aliases and workspace dependency are only for local library development.
 
@@ -52,8 +67,7 @@ and respects the supplied abort signal, response format, and timeout. Add its
 component to `src/examples/index.ts`; tabs are generated from this registry.
 For a new local library entrypoint, also add matching Vite and TypeScript aliases.
 
-Translations live in `src/i18n/en.ts` and `es.ts`. Error titles and messages update
-when the locale changes, while raw server content and identifiers stay intact.
+Scenario labels live alongside the request settings in `src/shared/requests.ts`.
 The local custom-kind and validation examples live in `src/shared/customization.ts`.
 
 ## Shared controls
@@ -72,7 +86,7 @@ content uses the default slot. Set `as="section"` for a semantic element or use
 `as-child` to style a single child component without adding a wrapper. Attributes
 and classes pass through; callers own headings and content spacing.
 
-The playground palette in `src/theme.css` mirrors VitePress’s neutral colors and
-`packages/docs/.vitepress/theme/custom.css` brand overrides. Tailwind semantic
-colors (`brand`, `surface`, `ink`, etc.) adapt to the active light/dark theme.
-Copy both CSS files when extracting a standalone example.
+The standalone palette in `src/palette.css` mirrors VitePress's neutral colors and
+`packages/docs/.vitepress/theme/custom.css` brand overrides. Shared components use
+VitePress CSS variables directly and adapt to the active light/dark theme.
+Copy `style.css` and `palette.css` alongside the Vue components when extracting a standalone example.

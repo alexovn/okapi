@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@types/node": "^26.5.1",
-    "vitepress-plugin-group-icons": "^1.7.6"
+    "vitepress-plugin-group-icons": "^1.7.6",
+    "@alexovn/okapi-playground": "workspace:*"
   }
 }

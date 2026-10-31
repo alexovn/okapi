@@ -32,18 +32,15 @@ const selectedLabel = computed(() => {
 
 <template>
   <SelectRoot v-model="model" :disabled="disabled">
-    <SelectTrigger
-      v-bind="$attrs"
-      class="inline-flex min-w-0 items-center justify-between gap-3 rounded-lg border border-edge bg-surface px-3 py-2 text-left text-sm font-normal text-ink disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      <span class="truncate">
+    <SelectTrigger v-bind="$attrs" class="ui-select">
+      <span class="ui-select__value">
         <SelectValue :placeholder="placeholder">{{ selectedLabel }}</SelectValue>
       </span>
 
-      <SelectIcon class="shrink-0 text-muted">
+      <SelectIcon class="ui-select__icon">
         <svg
           aria-hidden="true"
-          class="size-4"
+          class="ui-select__chevron"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -60,25 +57,22 @@ const selectedLabel = computed(() => {
         align="start"
         :side-offset="6"
         :collision-padding="8"
-        class="z-50 flex max-h-[min(20rem,var(--reka-select-content-available-height))] min-w-(--reka-select-trigger-width) max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-lg border border-divider bg-surface text-sm text-ink shadow-lg"
+        class="ui-select__menu"
       >
-        <SelectScrollUpButton
-          class="flex h-6 shrink-0 items-center justify-center text-muted"
-          aria-hidden="true"
-        >
+        <SelectScrollUpButton class="ui-select__scroll" aria-hidden="true">
           ▴
         </SelectScrollUpButton>
 
-        <SelectViewport class="min-h-0 p-1">
+        <SelectViewport class="ui-select__viewport">
           <SelectItem
             v-for="option in options"
             :key="option.value"
             :value="option.value"
             :disabled="option.disabled"
             :text-value="option.label"
-            class="relative cursor-pointer rounded-md py-2 pr-3 pl-8 outline-none select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-brand-soft data-highlighted:text-brand"
+            class="ui-select__option"
           >
-            <SelectItemIndicator class="absolute left-2" aria-hidden="true">
+            <SelectItemIndicator class="ui-select__indicator" aria-hidden="true">
               ✓
             </SelectItemIndicator>
 
@@ -86,13 +80,106 @@ const selectedLabel = computed(() => {
           </SelectItem>
         </SelectViewport>
 
-        <SelectScrollDownButton
-          class="flex h-6 shrink-0 items-center justify-center text-muted"
-          aria-hidden="true"
-        >
+        <SelectScrollDownButton class="ui-select__scroll" aria-hidden="true">
           ▾
         </SelectScrollDownButton>
       </SelectContent>
     </SelectPortal>
   </SelectRoot>
 </template>
+
+<style>
+.ui-select {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--vp-c-border);
+  border-radius: 0.5rem;
+  background: var(--vp-c-bg-elv);
+  color: var(--vp-c-text-1);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-select__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-select__icon {
+  flex-shrink: 0;
+  color: var(--vp-c-text-2);
+}
+
+.ui-select__chevron {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.ui-select__menu {
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  max-height: min(20rem, var(--reka-select-content-available-height));
+  min-width: var(--reka-select-trigger-width);
+  max-width: calc(100vw - 1rem);
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 0.5rem;
+  background: var(--vp-c-bg-elv);
+  color: var(--vp-c-text-1);
+  font-family: var(--vp-font-family-base, 'Inter', ui-sans-serif, system-ui, sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  box-shadow:
+    0 10px 15px -3px #0000001a,
+    0 4px 6px -4px #0000001a;
+}
+
+.ui-select__scroll {
+  display: flex;
+  height: 1.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--vp-c-text-2);
+}
+
+.ui-select__viewport {
+  min-height: 0;
+  padding: 0.25rem;
+}
+
+.ui-select__option {
+  position: relative;
+  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  border-radius: 0.375rem;
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-select__option[data-disabled] {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.ui-select__option[data-highlighted] {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+
+.ui-select__indicator {
+  position: absolute;
+  left: 0.5rem;
+}
+</style>

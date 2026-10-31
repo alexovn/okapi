@@ -16,9 +16,9 @@ hero:
     - theme: brand
       text: Get Started
       link: /introduction
-    # - theme: alt
-    #   text: Examples8
-    #   link: /examples
+    - theme: alt
+      text: Try the Playground
+      link: /playground
 
 features:
   - icon: 🛠️

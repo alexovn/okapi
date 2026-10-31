@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 import { joinURL, withoutTrailingSlash } from 'ufo'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
@@ -111,6 +113,20 @@ export default defineConfig({
   },
   vite: {
     plugins: [groupIconVitePlugin(), llmstxt()],
+    resolve: {
+      alias: {
+        '@alexovn/okapi/fetch': fileURLToPath(
+          new URL('../../lib/src/adapters/fetch.ts', import.meta.url),
+        ),
+        '@alexovn/okapi/axios': fileURLToPath(
+          new URL('../../lib/src/adapters/axios.ts', import.meta.url),
+        ),
+        '@alexovn/okapi/ofetch': fileURLToPath(
+          new URL('../../lib/src/adapters/ofetch.ts', import.meta.url),
+        ),
+        '@alexovn/okapi': fileURLToPath(new URL('../../lib/src/index.ts', import.meta.url)),
+      },
+    },
   },
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -127,6 +143,7 @@ export default defineConfig({
 
     nav: [
       { text: 'Home', link: '/' },
+      { text: 'Playground', link: '/playground' },
       {
         text: 'Docs',
         items: [
@@ -149,6 +166,7 @@ export default defineConfig({
         items: [
           { text: 'Introduction', link: '/introduction' },
           { text: 'Quick Start', link: '/quick-start' },
+          { text: 'Playground', link: '/playground' },
         ],
         collapsed: false,
       },

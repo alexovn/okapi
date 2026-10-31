@@ -43,11 +43,16 @@ export function parseValidationErrors(value: unknown): ApiValidationErrors | und
 
 export function mapCustomFixture(
   mode: 'kind' | 'validation',
-  options: OkapiErrorAdapterOptions<'subscription-expired'>,
+  options: OkapiErrorAdapterOptions<'subscription-expired'> = {},
 ) {
   const fixture = mode === 'kind' ? customKindFixture : validationFixture
   const configured: OkapiErrorAdapterOptions<'subscription-expired'> = {
     ...options,
+    i18n: {
+      titles: { 'subscription-expired': 'Subscription expired' },
+      messages: { 'subscription-expired': 'Renew your subscription to continue.' },
+      ...options.i18n,
+    },
     resolveKind: ({ raw }) => {
       if (
         typeof raw === 'object' &&
