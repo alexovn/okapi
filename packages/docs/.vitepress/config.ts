@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 
 import { joinURL, withoutTrailingSlash } from 'ufo'
-import { defineConfig } from 'vitepress'
+import { defineConfig, postcssIsolateStyles } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import llmstxt from 'vitepress-plugin-llms'
 import { copyOrDownloadAsMarkdownButtons } from 'vitepress-plugin-llms'
@@ -112,6 +112,11 @@ export default defineConfig({
     },
   },
   vite: {
+    css: {
+      postcss: {
+        plugins: [postcssIsolateStyles()],
+      },
+    },
     plugins: [groupIconVitePlugin(), llmstxt()],
     resolve: {
       alias: {
